@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14171c" media="(prefers-color-scheme: dark)">
+<title>서울국제식품산업전 참가업체 검색</title>
+<style>
+:root{
+  --bg:#f6f7f9; --card:#ffffff; --line:#e4e7ec; --line-strong:#cfd4dc;
+  --text:#1d2433; --muted:#667085; --accent:#2f5bd8; --accent-soft:#eef2fd;
+  --hl:#fff1b8; --danger:#b42318; --radius:10px;
+  --shadow:0 1px 2px rgba(16,24,40,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#14171c;--card:#1b1f26;--line:#2a303a;--line-strong:#3a4250;--text:#e6e9ef;--muted:#98a2b3;--accent:#8aa7f7;--accent-soft:#232b40;--hl:#5a4a10;--danger:#f97066;--shadow:none}
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:14px/1.55 "Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+mark{background:var(--hl);color:inherit;border-radius:3px;padding:0 1px}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+header.top{padding:26px 0 14px}
+header.top h1{margin:0;font-size:20px;font-weight:700;letter-spacing:-.2px}
+header.top p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.top-row{display:flex;gap:12px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap}
+.tools{display:flex;gap:6px;flex-wrap:wrap}
+
+.btn{border:1px solid var(--line-strong);background:var(--card);padding:6px 11px;border-radius:8px;cursor:pointer;font-size:13px;transition:background .15s,border-color .15s}
+.btn:hover{background:var(--accent-soft);border-color:var(--accent)}
+.btn:focus-visible,.chip:focus-visible,.star:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--muted)}
+.btn.ghost:hover{color:var(--text);background:var(--accent-soft)}
+
+.toolbar{position:sticky;top:0;z-index:20;background:var(--bg);padding:10px 0 12px;border-bottom:1px solid var(--line)}
+.search{position:relative}
+.search input{width:100%;padding:11px 40px 11px 40px;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--card);font-size:15px;box-shadow:var(--shadow)}
+.search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.search .clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:var(--muted);font-size:18px;cursor:pointer;padding:2px 8px;border-radius:6px;display:none}
+.search.has .clear{display:block}
+.search kbd{position:absolute;right:12px;top:50%;transform:translateY(-50%);font:12px ui-monospace,monospace;border:1px solid var(--line-strong);border-radius:5px;padding:0 6px;color:var(--muted)}
+.search.has kbd,.search input:focus ~ kbd{display:none}
+
+.filters{display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line-strong);background:var(--card);border-radius:999px;padding:4px 11px;cursor:pointer;font-size:13px}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--cc,#98a2b3)}
+.chip em{font-style:normal;color:var(--muted);font-size:12px}
+.chip.on{border-color:var(--accent);background:var(--accent-soft)}
+.sel{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-left:auto}
+.sel label{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px}
+select{border:1px solid var(--line-strong);background:var(--card);border-radius:8px;padding:5px 8px;font-size:13px}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--card);padding:5px 11px;font-size:13px;cursor:pointer;color:var(--muted)}
+.seg button+button{border-left:1px solid var(--line-strong)}
+.seg button.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.check{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:13px;cursor:pointer;user-select:none}
+.check input{accent-color:var(--accent)}
+
+.stats{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:14px 0 8px;color:var(--muted);font-size:13px}
+.stats b{color:var(--text)}
+.banner{display:none;margin:12px 0 0;padding:9px 12px;border:1px solid var(--danger);color:var(--danger);border-radius:8px;font-size:13px}
+
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+thead th{position:static;text-align:left;font-weight:600;font-size:12px;color:var(--muted);background:color-mix(in srgb,var(--bg) 60%,var(--card));padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+tbody td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top;word-break:break-word}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:color-mix(in srgb,var(--accent-soft) 55%,transparent)}
+col.c-star{width:42px} col.c-name{width:27%} col.c-item{width:19%} col.c-booth{width:92px} col.c-hp{width:20%} col.c-memo{width:auto}
+.name{font-weight:600}
+.name small{font-weight:400;color:var(--muted);font-size:11px;border:1px solid var(--line-strong);border-radius:4px;padding:0 4px;margin-left:6px;white-space:nowrap}
+.booth{font-variant-numeric:tabular-nums;font-weight:600;letter-spacing:.2px}
+.booth.none,.na{color:var(--muted);font-weight:400}
+.tags{display:flex;flex-wrap:wrap;gap:4px}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:1px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.tag i{width:7px;height:7px;border-radius:50%;background:var(--cc,#98a2b3)}
+.hp a{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.star{border:0;background:transparent;cursor:pointer;font-size:17px;line-height:1;color:var(--line-strong);padding:2px 4px;border-radius:6px}
+.star:hover{color:#d4a017}
+.star.on{color:#d4a017}
+.memo{cursor:pointer;border-radius:8px}
+.memo .add{color:var(--muted);font-size:13px;border:1px dashed var(--line-strong);border-radius:7px;padding:2px 9px;background:transparent;cursor:pointer}
+.memo:hover .add{border-color:var(--accent);color:var(--accent)}
+.memo .txt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap;font-size:13px;background:var(--accent-soft);border-radius:7px;padding:3px 9px}
+
+details.grp{border-bottom:1px solid var(--line)}
+details.grp:last-child{border-bottom:0}
+details.grp>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:11px 14px;font-weight:600;background:color-mix(in srgb,var(--bg) 60%,var(--card));border-bottom:1px solid var(--line);user-select:none}
+details.grp>summary::-webkit-details-marker{display:none}
+details.grp>summary::before{content:"▸";color:var(--muted);transition:transform .15s;font-size:12px}
+details.grp[open]>summary::before{transform:rotate(90deg)}
+details.grp>summary i{width:9px;height:9px;border-radius:50%;background:var(--cc)}
+details.grp>summary b{margin-left:auto;font-weight:500;color:var(--muted);font-size:13px}
+details.grp:not([open])>summary{border-bottom:0}
+
+.empty{padding:48px 16px;text-align:center;color:var(--muted)}
+footer{padding:18px 0 40px;color:var(--muted);font-size:12px;line-height:1.7}
+
+#ov{position:fixed;inset:0;background:rgba(16,24,40,.35);opacity:0;pointer-events:none;transition:opacity .2s;z-index:40}
+#ov.show{opacity:1;pointer-events:auto}
+#drawer{position:fixed;top:0;right:0;height:100%;width:min(420px,100%);background:var(--card);border-left:1px solid var(--line);z-index:50;transform:translateX(100%);transition:transform .22s ease;display:flex;flex-direction:column;box-shadow:-8px 0 24px rgba(16,24,40,.12)}
+#drawer.show{transform:none}
+#drawer header{padding:16px 18px 10px;display:flex;gap:10px;align-items:flex-start}
+#drawer h2{margin:0;font-size:16px;line-height:1.4;flex:1}
+#drawer .x{border:0;background:transparent;font-size:20px;cursor:pointer;color:var(--muted);border-radius:6px;padding:0 6px}
+#drawer .body{padding:0 18px 12px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:12px}
+.meta{display:grid;grid-template-columns:64px 1fr;gap:4px 10px;font-size:13px}
+.meta dt{color:var(--muted)} .meta dd{margin:0;word-break:break-all}
+#dText{width:100%;flex:1;min-height:180px;resize:vertical;padding:10px 12px;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--card);line-height:1.6}
+.quick{display:flex;flex-wrap:wrap;gap:6px}
+.quick button{border:1px solid var(--line-strong);background:var(--card);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer}
+.quick button:hover{border-color:var(--accent);background:var(--accent-soft)}
+#drawer .foot{padding:10px 18px 16px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.danger{color:var(--danger)}
+
+#toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);background:#1d2433;color:#fff;padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:60}
+#toast.show{opacity:.95;transform:translate(-50%,0)}
+
+*{-webkit-tap-highlight-color:transparent}
+button,a,select,label.check{touch-action:manipulation}
+.search-row{display:flex;gap:8px;align-items:stretch}
+.search{flex:1;min-width:0}
+#fToggle{display:none}
+.grab{display:none}
+body.lock{overflow:hidden}
+#toTop{position:fixed;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));width:44px;height:44px;border-radius:50%;border:1px solid var(--line-strong);background:var(--card);box-shadow:0 2px 8px rgba(16,24,40,.15);font-size:18px;cursor:pointer;opacity:0;pointer-events:none;transform:translateY(8px);transition:.2s;z-index:30}
+#toTop.show{opacity:1;pointer-events:auto;transform:none}
+@media (hover:none){
+  .star:hover{color:var(--line-strong)} .star.on:hover{color:#d4a017}
+  tbody tr:hover td{background:transparent}
+}
+
+@media (max-width:820px){
+  .wrap{padding:0 14px}
+  header.top{padding:16px 0 8px}
+  header.top h1{font-size:17px}
+  header.top p{font-size:12px}
+  .top-row{gap:8px}
+  .tools{flex-wrap:nowrap;overflow-x:auto;margin:0 -14px;padding:2px 14px;width:calc(100% + 28px);scrollbar-width:none}
+  .tools::-webkit-scrollbar{display:none}
+  .tools .btn{flex:none;white-space:nowrap;min-height:36px}
+
+  .toolbar{margin:0 -14px;padding:8px 14px}
+  .search input{font-size:16px;padding:12px 38px 12px 38px}
+  .search kbd{display:none}
+  #fToggle{display:inline-flex;align-items:center;gap:3px;flex:none;min-height:46px;padding:0 14px;border-radius:var(--radius);box-shadow:var(--shadow)}
+  #fToggle.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}
+  .filters{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin-top:8px}
+  .chips{flex-wrap:nowrap;overflow-x:auto;margin:0 -14px;padding:0 14px 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:none;padding:8px 13px;min-height:38px;font-size:14px}
+  .sel{display:none;margin-left:0;grid-template-columns:1fr 1fr;gap:8px;padding:12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card)}
+  .filters.open .sel{display:grid}
+  .sel label{display:flex;justify-content:space-between;align-items:center;font-size:13px;gap:8px}
+  .sel select{font-size:16px;min-height:40px;flex:1;min-width:0}
+  .sel .seg{grid-column:1 / -1}
+  .seg button{flex:1;min-height:40px;font-size:14px}
+  .sel .check{min-height:40px;font-size:14px;gap:8px}
+  .sel .check input{width:18px;height:18px}
+  #reset{grid-column:1 / -1;border:1px solid var(--line-strong);min-height:40px}
+
+  .stats{margin:10px 0 6px;font-size:12px}
+  .panel{border-radius:12px}
+  details.grp>summary{padding:13px 14px;min-height:48px}
+
+  table,tbody,tr,td{display:block;width:100%}
+  thead,colgroup{display:none}
+  tbody tr{display:grid;grid-template-columns:40px minmax(0,1fr) auto;column-gap:4px;row-gap:6px;padding:12px 12px 12px 6px;border-bottom:1px solid var(--line);align-items:start}
+  tbody tr:last-child{border-bottom:0}
+  tbody td{border:0;padding:0}
+  td.s{grid-row:1;grid-column:1}
+  .star{font-size:22px;width:40px;height:40px;padding:0}
+  td.n{grid-row:1;grid-column:2;align-self:center;font-size:15px;line-height:1.4;min-width:0}
+  td.b{grid-row:1;grid-column:3;align-self:center}
+  .booth{display:inline-block;background:var(--accent-soft);border-radius:8px;padding:3px 10px;font-size:13px}
+  .booth.none{background:transparent;padding:0}
+  td.i{grid-column:2 / 4}
+  td.h{grid-column:2 / 4;font-size:13px}
+  .hp a{padding:4px 0}
+  .hp a::after{content:" ↗";color:var(--muted)}
+  td.m{grid-column:2 / 4;margin-top:2px}
+  .memo .add{display:block;width:100%;min-height:38px;border-radius:8px}
+  .memo .txt{font-size:14px;padding:7px 10px}
+
+  #drawer{top:auto;bottom:0;left:0;right:0;width:100%;height:auto;max-height:88vh;max-height:88dvh;border-left:0;border-top:1px solid var(--line);border-radius:18px 18px 0 0;transform:translateY(105%);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -8px 30px rgba(16,24,40,.2)}
+  #drawer.show{transform:none}
+  .grab{display:block;width:40px;height:5px;border-radius:3px;background:var(--line-strong);margin:8px auto 0;flex:none}
+  #drawer header{padding:10px 16px 8px}
+  #drawer h2{font-size:15px}
+  #drawer .x{font-size:26px;min-width:44px;min-height:44px;margin:-8px -8px 0 0}
+  #drawer .body{padding:0 16px 8px}
+  #dText{font-size:16px;flex:none;height:150px;min-height:120px}
+  .quick button{padding:7px 12px;font-size:13px}
+  #drawer .foot{padding:8px 16px 12px}
+  #dDel{min-height:40px}
+  footer{font-size:11.5px;padding-bottom:calc(60px + env(safe-area-inset-bottom))}
+  #toast{bottom:calc(84px + env(safe-area-inset-bottom));max-width:90%}
+}
+@media print{.toolbar,.tools,#drawer,#ov,footer,.star{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="top-row">
+      <div>
+        <h1>제21회 서울국제식품산업전 참가업체 검색</h1>
+        <p>총 <b id="totalN"></b>개사 · 수집일 2026-11-02 · 출처 푸드위크 코리아 참가사 디렉토리</p>
+      </div>
+      <div class="tools">
+        <button class="btn" id="bCsv" title="현재 표시된 목록을 메모 포함 CSV로 저장">CSV 내보내기</button>
+        <button class="btn" id="bBackup" title="메모와 관심 표시를 파일로 백업">메모 백업</button>
+        <button class="btn" id="bRestore" title="백업 파일에서 메모 복원">메모 복원</button>
+        <input type="file" id="fRestore" accept=".json,application/json" hidden>
+      </div>
+    </div>
+    <div class="banner" id="banner">이 브라우저에서는 저장소를 쓸 수 없어 메모가 현재 탭에서만 유지됩니다. 작성 후 ‘메모 백업’으로 파일을 저장해 주세요.</div>
+  </header>
+
+  <div class="toolbar">
+    <div class="search-row">
+    <div class="search" id="searchBox">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" autocomplete="off" placeholder="업체명, 부스번호, 홈페이지, 메모 검색 (초성 검색 가능: ㅅㅇ)" aria-label="검색">
+      <kbd>/</kbd>
+      <button class="clear" id="qClear" aria-label="검색어 지우기">×</button>
+    </div>
+    <button class="btn" id="fToggle" aria-expanded="false" aria-controls="filters">필터<span id="fCount"></span></button>
+    </div>
+    <div class="filters" id="filters">
+      <div class="chips" id="chips" role="group" aria-label="품목 카테고리"></div>
+      <div class="sel">
+        <label>구역 <select id="zone"></select></label>
+        <label>정렬 <select id="sort">
+          <option value="name">이름순</option>
+          <option value="booth">부스번호순</option>
+          <option value="cat">품목순</option>
+          <option value="no">사이트 목록순</option>
+        </select></label>
+        <div class="seg" id="viewSeg"><button data-v="list" class="on">목록</button><button data-v="group">카테고리별</button></div>
+        <label class="check"><input type="checkbox" id="favOnly">★ 관심만</label>
+        <label class="check"><input type="checkbox" id="memoOnly">메모 있는 업체만</label>
+        <button class="btn ghost" id="reset">초기화</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats"><div id="statL"></div><div id="statR"></div></div>
+  <div class="panel" id="list"></div>
+
+  <footer>
+    · <b>/</b> 키로 검색창으로 이동, <b>Esc</b>로 메모창 닫기. 검색어를 띄어 쓰면 모든 단어가 포함된 업체만 찾습니다.<br>
+    · 품목은 사이트 분류(국내종합식품·해외수입식품·기계/솔루션·기타)를 따르며, 두 개 이상 해당하는 업체는 카테고리별 보기에서 각 그룹에 모두 표시됩니다.<br>
+    · 메모와 관심 표시는 이 브라우저에 자동 저장됩니다. 다른 브라우저나 PC에서 쓰려면 ‘메모 백업’ 후 ‘메모 복원’을 이용해 주세요.<br>
+    · 국문 간판명이 없는 업체는 영문명으로 표시하고 ‘영문’ 표시를 붙였습니다. 홈페이지 값은 사이트 입력 그대로이므로 접속이 안 되는 주소가 있을 수 있습니다.
+  </footer>
+</div>
+
+<div id="ov"></div>
+<aside id="drawer" aria-hidden="true" role="dialog" aria-label="업체 메모">
+  <div class="grab" id="grab"></div>
+  <header><h2 id="dName"></h2><button class="x" id="dClose" aria-label="닫기">×</button></header>
+  <div class="body">
+    <dl class="meta" id="dMeta"></dl>
+    <label for="dText" style="font-weight:600">메모 (특이사항)</label>
+    <textarea id="dText" placeholder="예) 시식 후 재방문 필요, 담당자 명함 수령, 견적 요청 …"></textarea>
+    <div class="quick" id="dQuick"></div>
+  </div>
+  <div class="foot"><span id="dSaved">자동 저장됩니다</span><button class="btn ghost danger" id="dDel">메모 삭제</button></div>
+</aside>
+<button id="toTop" aria-label="맨 위로">↑</button>
+<div id="toast"></div>
+
+<script>
+const DATA = [[1,"(영)정읍명품귀리",0,"국내종합식품","A5505","www.oatrice.co.kr"],[2,"재단법인 전주농생명소재연구원",0,"기타","A3204","http://www.jami.re.kr/"],[3,"(주)가보트레이딩",0,"해외수입식품","A8512","http://www.gabotrading.com/"],[4,"50년 전통 제면명가, 면가원",0,"국내종합식품","B5410","www.kangfood.co.kr"],[5,"청년쿡 비즈니스·푸드테크 센터",0,"국내종합식품","","https://www.myshoponshop.com/"],[6,"메디오젠",0,"국내종합식품, 해외수입식품","B5710","https://mediogen.co.kr/"],[7,"(주)바이오닷웍스",0,"국내종합식품","A4511","https://www.biodot.co.kr/"],[8,"(주)범아식품",0,"국내종합식품","L1003","https://www.bumafood.co.kr/"],[9,"(주)신성베이커리",0,"국내종합식품","A5309","https://shinsung0.co.kr"],[10,"쌍쌍화차",0,"국내종합식품","B5401","https://eyrie.kr/"],[11,"(주)엑스코어시스템",0,"기계/솔루션","C1408","www.xcs.co.kr"],[12,"(주)이도패키지 / (주)한국팩키지",0,"기계/솔루션","A4303","http://www.verrapack.com"],[13,"(주)칸필터",0,"기계/솔루션","C0402","https://khanfilter.com"],[14,"(주)캑터스 커뮤니케이션즈 코리아",0,"기타","C4501","www.cactusglobal.co.kr/"],[15,"(주)태진산업",0,"기타","C0201","www.tisco.kr"],[16,"(주)태진지엔에스/두토푸",0,"국내종합식품","A2201","www.taejingns.com"],[17,"(주)팔도",0,"국내종합식품","B4101","https://www.paldofood.co.kr/"],[18,"aT 농수산식품 정책자금 지원 상담관",0,"국내종합식품","A5207","www.at.or.kr"],[19,"가평군 농업인 소득향상 마케팅 지원",0,"국내종합식품","A5606","https://www.gp.go.kr/gpnongup/index.do"],[20,"경기도농수산진흥원",0,"기타","C6004","www.gafi.or.kr"],[21,"곡성토란도란농촌융복합사업단",0,"국내종합식품","A2402","https://blog.naver.com/gstoran"],[22,"괴산꿀벌랜드",0,"국내종합식품","A4501","golcan@hanmail.net"],[23,"파미",0,"해외수입식품","B5805","https://naris.kr/pages/pami"],[24,"미스터비엣",0,"해외수입식품","B3207","https://www.mrviet.kr/"],[25,"농업회사법인 (주)자연의시간",0,"국내종합식품","B2404","instargram.com/choa.farm"],[26,"산두레유한회사",0,"국내종합식품","A1303","http://www.salimfood.co.kr/"],[27,"농업회사법인 주식회사 양나인비노",0,"국내종합식품","A3506","https://www.instagram.com/yangninevino/"],[28,"농업회사법인 큰마을주식회사",0,"국내종합식품","A4502","https://www.seosan.go.kr/agritech/index.do"],[29,"한결",0,"국내종합식품","L1001","https://hangyeol.co/"],[30,"농업회사법인 주식회사 열매농산",0,"기타","C8107","www.foodup.co.kr"],[31,"남강의 맛, 함안어부탕",0,"국내종합식품","A2408","https://smartstore.naver.com/fishsoupstory"],[32,"단미정 앙금꽃피다",0,"국내종합식품, 해외수입식품","B2204","www.danmijeong.com"],[33,"대박집",0,"국내종합식품","B3703","https://www.instagram.com/daebak...cj/"],[34,"진저피플",0,"해외수입식품","B2605","https://gingerpeople.com/"],[35,"락탈리스코리아 유한책임회사",0,"해외수입식품, 기타","A8401","www.lactalis-international.com/"],[36,"리나스대성(주)",0,"기계/솔루션","C4002","www.rinasds.co.kr"],[37,"만제영어조합법인",0,"국내종합식품","A3301","http://www.egalchi.com"],[38,"메카 김 MEKKA seaweed",0,"국내종합식품","A5305","www.mekka.co.kr"],[39,"도라지청년",0,"국내종합식품","A6508","http://www.san-maeul.co.kr/"],[40,"삼성 스마트공장과 함께하는 K-FOOD관",0,"국내종합식품","A7401","https://www.samsung-smartfactory.com/expo/about"],[41,"삼양식품",0,"국내종합식품","B4101","https://www.samyangfoods.com/"],[42,"삼진식품",0,"국내종합식품","B2106","http://www.samjin.net/"],[43,"맵지수%",0,"국내종합식품","B4704","https://smartstore.naver.com/makchangindex"],[44,"식품안전정보원",0,"기타","A7210","https://www.foodinfo.or.kr/main.do"],[45,"덜짜고 덜단 저감제품 · 메뉴 홍보관",0,"국내종합식품","","www"],[46,"신광제과",0,"국내종합식품","A5307","www.naver.com"],[47,"에스엔씨홀딩스 주식회사",0,"해외수입식품","B4509","https://sncholdings.kr/"],[48,"예산군",0,"기타","A6401","https://www.yesan.go.kr/"],[49,"이레팜 농업회사법인 주식회사",0,"국내종합식품","C6312","odewooa.com"],[50,"이푸른(주)",0,"국내종합식품","B3301","https://epureun.co.kr/?NaPm=ct%3Dmtqgywau%7Cci%3Dcheckout%7Ctr%3Dds%7Ctrx%3Dnull%7Chk%3D0603161b857a5b10817f399356ab8c4c30c30113"],[51,"이하이코리아푸드 주식회사",0,"해외수입식품","A4401","http://www.yihkorea.com/"],[52,"인천농촌융복합산업XNAVER 홍보관",0,"국내종합식품","A4505","https://itp.or.kr/"],[53,"소백산 도라지 전문 브랜드 도라지미",0,"국내종합식품","A6415","https://dorazime.com/?NaPm=ct%3Dmsxy7iew%7Cci%3Dcheckout%7Ctr%3Dds%7Ctrx%3Dnull%7Chk%3Ddcf80e2cd2fffb631dea65526ce4ec8539f6bde0"],[54,"국산 밀ㆍ콩ㆍ가루쌀 홍보관",0,"국내종합식품","A6001","https://www.at.or.kr/"],[55,"전북의 자원, 케어푸드가 되다",0,"국내종합식품","C4402","jif.re.kr"],[56,"제주삼다알로에영농조합법인",0,"국내종합식품, 기타","A3304","www.jejualoe.com"],[57,"만두보국",0,"국내종합식품","A2206","https://www.instagram.com/manduboguk"],[58,"아트몬스터 브루어리",0,"기타","W1003","WWW.ARTMONSTER.CO.KR"],[59,"주식회사 바운티에스앤비",0,"해외수입식품","W1006","www.bountysnb.com"],[60,"(주) 삼일",0,"국내종합식품, 해외수입식품","B3801","https://www.instagram.com/_31_store_/"],[61,"마이옵티멀",0,"국내종합식품","B2310","https://www.myoptimal.co.kr/"],[62,"주식회사 은성푸드",0,"국내종합식품","C8604","http://www.esfood-co.com/"],[63,"주식회사 하이로",0,"기계/솔루션","C0403","www.hiro.co.kr"],[64,"주식회사 한스비앤에프",0,"국내종합식품, 기타","C7204","www.hansbnf.com"],[65,"주식회사 호영식품",0,"국내종합식품","A4413","www.bunmoja.com"],[66,"주한호주대사관 무역투자대표부",0,"해외수입식품","B4301","https://www.austrade.gov.au/ko"],[67,"지리산처럼 영농조합법인",0,"국내종합식품","C6601","www.happyjirisan.co.kr"],[68,"더옐롱",0,"국내종합식품","B2309","https://theyellong.com"],[69,"전주찬방 유기농 비건김치",0,"국내종합식품","A6501","https://jeonjuchanbang.com/"],[70,"99홍도라지조청",0,"국내종합식품","A1401","99dorage.com"],[71,"소이온",0,"국내종합식품","B4506","https://www.instagram.com/feasta_official"],[72,"전북 푸드테크 홍보관",0,"기타","C3409","www.jif.re.kr"],[73,"샤오커오라",0,"해외수입식품","B5604","https://shaokeola.co.kr/about-new.html"],[74,"피자느반",0,"국내종합식품","B4205","https://naver.me/G6QwaQV1"],[75,"농식품 수출지원사업 홍보관",0,"기타","C5502","www.kati.net"],[76,"중소식품기업 정책홍보관",0,"국내종합식품","A7106","www.foodbiz.or.kr"],[77,"함양천령산약초",0,"기타","L1018","www."],[78,"현대그린푸드 그리팅",0,"국내종합식품","A3101","https://www.greating.co.kr/"],[79,"백련가 숨쉬는 연잎밥",0,"국내종합식품","L1019","www.aija.co.kr"],[80,"횡성굼벵이마을(곤충전문업체)",0,"국내종합식품","A2505","https://link.inpock.co.kr/kgumbeng"],[81,"(주)바르미식품",0,"국내종합식품","A5310","https://www.xn--9t4bo1exyo.com/default/index.php"],[82,"(주)비케이바이오",0,"국내종합식품","A3301","www.bkbio.com"],[83,"Elaia Holdings (Hong Kong) Limited / la belle-iloise",1,"해외수입식품","A8401","www.elaiaholdings.com"],[84,"호글로우",0,"국내종합식품","B2501","https://link.grip.show/kendokjs"],[85,"㈜피스월드",0,"기계/솔루션","C3309","www.peaceworld.co.kr/"],[86,"Shaanxi Evergreen Herbal Biotech Co., Ltd",1,"해외수입식품","A9301","-"],[87,"주식회사 소울",0,"국내종합식품, 기타","L1008","https://www.soulfs.com/"],[88,"LUOHE LIANTAI FOOD CO.,LTD.",1,"해외수입식품","A8108","-"],[89,"ZHANGZHOU NEW SOUTH CHINA INTERNATIONAL TRADING CO.,LTD.",1,"해외수입식품","A8121","-"],[90,"2026 하반기 BKF+ 참가 업체 쇼케이스",0,"국내종합식품","C7001","https://www.at.or.kr/home/apko000000/index.action"],[91,"삼둥이농장",0,"국내종합식품","A2404","https://samfarm.co.kr"],[92,"칠산수산",0,"국내종합식품","A2409","https://smartstore.naver.com/7san"],[93,"팔팔양조장",0,"국내종합식품","A6509","88yangjojang.com"],[94,"(주)에이징테크바이오",0,"국내종합식품","C6001","https://blog.naver.com/healing0224"],[95,"AGRO'NOVAE INDUSTRIE",1,"","A8401","www.lamanufacturedeconfitures.com"],[96,"농업회사법인 (주)알토란",0,"국내종합식품","C7503","www.altolan.kr"],[97,"(주)아미인터내셔널/아미쿡",0,"기계/솔루션","C3301","www.amicook.co.kr"],[98,"아미트레이딩",0,"해외수입식품","A1301","https://amitrading.co.kr/"],[99,"(주)아람",0,"국내종합식품","B3702","www.aramfood.co.kr"],[100,"아란푸드랩",0,"국내종합식품","C8008","https://smartstore.naver.com/tteokidang"],[101,"아리당",0,"국내종합식품","A6503","https://www.aridang.co.kr"],[102,"아리너스",0,"국내종합식품","A4601","http://www.arihnus.com/"],[103,"(주)아시안룩스",0,"기계/솔루션","C3306","www.asianlux.co.kr"],[104,"아침 주식회사",0,"국내종합식품","B1403","https://www.achim.co.kr/"],[105,"농업회사법인 휴먼웰",0,"국내종합식품, 해외수입식품","A4602","www.humanwell.co.kr"],[106,"농업회사법인 주식회사 푸드팩토리",0,"국내종합식품","B5706","http://food-factory.kr/doc/product04.php"],[107,"농업회사법인주식회사 정담",0,"기타","A4502","https://smartstore.naver.com/hajinmush"],[108,"농업회사법인주식회사홈스랑",0,"국내종합식품","C8203","https://homsrang.com/"],[109,"안동소주일품(주)",0,"기타","J2001","https://ilpoomsoju.com/"],[110,"룩트",0,"국내종합식품","B3505","https://lukt.co.kr/"],[111,"아산증류소",0,"국내종합식품","C8001","asandistillery.com"],[112,"코너부스 1 : 페렐로 올리브 / 부스 2 : 콘디 발사믹",0,"국내종합식품, 해외수입식품","B4411","https://asen.co.kr/"],[113,"뽐떡볶이",0,"국내종합식품, 해외수입식품","B5101","https://bbom.co.kr/"],[114,"백두에프엠",0,"국내종합식품, 해외수입식품","A4406","www.bdfs.co.kr"],[115,"누룩공방 배나무실㈜",0,"국내종합식품","B5712","https://baenamusil.com/"],[116,"(주)베베쿡",0,"국내종합식품","C8101","https://www.bebecook.com/page/main/index"],[117,"(주)비욘드비어",0,"해외수입식품","W1008","www.beyondbier.com"],[118,"(주)바이오푸드랩",0,"기타","A7216","https://www.biofl.co.kr/"],[119,"(주)바이오뉴트리온",0,"국내종합식품","C5304","https://www.drcoach.co.kr/"],[120,"웰니스 프로틴",0,"국내종합식품, 기타","B5305","www.bippeco.com"],[121,"비케이팩",0,"기타","A2210","www.bkpak.com"],[122,"(주)봉평농원",0,"국내종합식품","A3602","https://bongpyung.com"],[123,"브라보식품",0,"국내종합식품","B5414","smartstore.naver.com/bravofood25"],[124,"벨이삭",0,"기계/솔루션","C6007","BelleissaC.cloud"],[125,"보은 식품제조 소공인특화지원센터",0,"국내종합식품","L1024","https://www.cbist.or.kr"],[126,"봉봉과수원",0,"국내종합식품","A3402","https://smartstore.naver.com/bonbonshine"],[127,"주식회사 부성",0,"국내종합식품","A3505","https://www.misetea.co.kr/"],[128,"Butuo Runsen Agricultural Technology Co.，Ltd.",1,"해외수입식품","A9401","--"],[129,"ERMAK",1,"해외수입식품","A8212","www.ermak.co.kr"],[130,"꼬치페스타",0,"국내종합식품","B4802","https://ccskewer.com/"],[131,"텀블스프",0,"국내종합식품","A2504","www.avec-jean.com"],[132,"(주)채널스케치 오덕",0,"국내종합식품","A3403","https://oduckmall.com/"],[133,"차네스트",0,"기계/솔루션, 기타","C6006","https://www.instagram.com/custstep?stkn=ZGNrNWRleGdmbzJ1&utm_source=qr"],[134,"(주)처음식품",0,"국내종합식품","B3609","https://blog.naver.com/cheoeumfood"],[135,"체르노골로프카",0,"해외수입식품","","https://chernogolovka.com/"],[136,"씨케이앤푸드",0,"해외수입식품, 기계/솔루션","A8701","https://www.cknfood.com/"],[137,"2026 콘텐츠IP 마켓",0,"기타","C4502","https://ipmarket.kr/"],[138,"유한책임회사 쿡인페이퍼",0,"기계/솔루션, 기타","B5006","www.cookinpaper.com"],[139,"과자의성",0,"국내종합식품","B2210","http://www.cookie14.co.kr/"],[140,"주식회사 코스티모",0,"기계/솔루션","C2201","https://www.costimo.com/"],[141,"Cangxi County Jinnong Grain and Oil Co.，Ltd.",1,"해외수입식품","A8407","-"],[142,"따꿈디저트",0,"국내종합식품","B5501","https://ccoru.com"],[143,"주식회사 채정",0,"국내종합식품","C8305","https://heyzine.com/flip-book/ff49543d33.html"],[144,"농업회사법인(주)참미소",0,"국내종합식품","C6101","https://smartstore.naver.com/chammiso"],[145,"Chongqing Yilun Sanzi New Packaging Co., Ltd.",1,"해외수입식품","C0302","https://cqyilun.1688.com/"],[146,"(주)청우식품",0,"국내종합식품","A4403","www.chungwoofood.co.kr"],[147,"오바이오틱",0,"국내종합식품, 해외수입식품","L1009","https://obiotic.co.kr/"],[148,"City Alliance LLC",1,"해외수입식품","","www.cityalliance.mn"],[149,"아시아고 PDO 치즈 보호 협회",0,"해외수입식품","A8601","https://asiagocheese.it/en/"],[150,"주식회사 콘텐츠캐리어",0,"해외수입식품","B2001","https://www.contentscarrier.com/"],[151,"농업회사법인 대흥(주)",0,"국내종합식품","B2401","www.alalri.com"],[152,"대호수산(주)",0,"국내종합식품","A1101","www.daehosusan.co.kr"],[153,"미트토크",0,"국내종합식품","C6308","meatalk.com"],[154,"대신엠씨 주식회사",0,"기계/솔루션","C1101","http://www.daeshinmc.co.kr/"],[155,"(주)곳간",0,"국내종합식품","B2110","https://smartstore.naver.com/store-room"],[156,"(주)대진엔터프라이즈",0,"기계/솔루션, 기타","C3401","https://www.daijin-ent.co.kr/"],[157,"(주)다인인터내셔널",0,"국내종합식품, 해외수입식품","B4107","http://dain-international.co.kr/"],[158,"대양화성(주)",0,"기타","B5105","www.dychemical.com"],[159,"담미소",0,"국내종합식품","B2712","https://dammiso.com/"],[160,"얼려먹는 레인보우큐브치즈 먹어봤어?",0,"국내종합식품","B3705","https://www.danmeefood.kr/"],[161,"(주)데키스트",0,"기계/솔루션","C3602","https://www.radionodecare.com/index.html"],[162,"더덕몽",0,"국내종합식품","B2409","https://deodeokmong.co.kr"],[163,"그로브 아보카도오일",0,"해외수입식품","B5106","https://www.groveavo.co.kr"],[164,"두유본색",0,"국내종합식품","B4507","https://www.dooy.co.kr/"],[165,"도울로보틱스",0,"기계/솔루션","B1205","www.doulrobotics.com"],[166,"파밍파밍",0,"국내종합식품","A6406","https://farmingfarming.com/"],[167,"주식회사 두레",0,"국내종합식품, 기타","A4305","www.durepack.com"],[168,"두리라이스",0,"기타","A4415","www.duri-rice.com"],[169,"대동고려삼(주)",0,"국내종합식품","C8502","www.ddkorea.co.kr"],[170,"뜨락",0,"국내종합식품","B2105","https://smartstore.naver.com/tteurak_rice"],[171,"(주)대양에스티",0,"기계/솔루션","C4103","www.dyst.co.kr"],[172,"농업회사법인 다정다감푸드",0,"국내종합식품","A3408","https://smartstore.naver.com/dagam3868"],[173,"(주)데이바이미",0,"국내종합식품, 기타","C8002","https://eatthefit.com/"],[174,"다예랑 전초흑삼 친환경 6차산업",0,"국내종합식품","C6008","https://www.instagram.com/da_yelang?igsh=MWR4b3F1N2M2ZXh4OA==&igsi=MWR4b3F1N2M2ZXh4OA=="],[175,"주식회사 딜라이트푸드",0,"기타","C6603","https://delightfood.co.kr/"],[176,"클린스프",0,"국내종합식품","B3502","http://hygieia.co.kr/"],[177,"동그리(유)농업회사법인",0,"국내종합식품","A5508","https://blog.naver.com/sondh01"],[178,"(주)동신이앤피",0,"국내종합식품, 해외수입식품, 기계/솔루션","","https://dsenp.co.kr/"],[179,"도르리",0,"국내종합식품","B3415","https://doruri.com/"],[180,"(주) 이그린테크",0,"기계/솔루션","C3407","www.egt3401.com"],[181,"(주)이엔크리에이티브",0,"국내종합식품","C8205","www.kukdduk.com"],[182,"주식회사 이지텍",0,"국내종합식품, 해외수입식품","B2111","https://www.egtechcorp.com/"],[183,"(주) 아인스",0,"국내종합식품","B1404","https://www.einsfood.com/"],[184,"헬시플레이스",0,"국내종합식품","C6009","https://healthyplace.kr/"],[185,"에르코스",0,"국내종합식품","C7203","https://ercohs.com/default/en/"],[186,"(주)이에스지스쿨",0,"기계/솔루션","C3507","www.esgschool.co.kr"],[187,"EUKIHAL",1,"해외수입식품","A8115","www.eukihal.eu"],[188,"에브리데이즈",0,"국내종합식품","B4706","www.everydaze.co.kr"],[189,"동그린주식회사",0,"국내종합식품","B3410","www.eastgreen.co.kr"],[190,"Eco-Erdene LLC",1,"해외수입식품","","ecoerdene.com"],[191,"벨텐부르거",0,"해외수입식품","W1002",".."],[192,"한끼버섯,동충하초차,표고버섯 슬라이스",0,"국내종합식품","A1502","www.embracegf.com"],[193,"주식회사 팜투글로벌",0,"국내종합식품","C7401","www.ongok.kr"],[194,"(주) 팜존에스엔씨",0,"기계/솔루션","C6401","http://www.farmzonesnc.com"],[195,"에프에프엔이",0,"기계/솔루션","C0102","fne21.com"],[196,"파이어(주) - 모모앤쥬시",0,"국내종합식품","C6102","https://smartstore.naver.com/thenilkfactory"],[197,"에프엔바이오(주)",0,"국내종합식품, 해외수입식품","C8206","www.fnbio.co.kr"],[198,"(주)에프엔코퍼레이션",0,"국내종합식품","C7004","www.pretea.co.kr"],[199,"푸드폴리스마켓",0,"국내종합식품","A5101","https://foodpolismarket.com/"],[200,"주식회사 패미로스 농업회사법인",0,"국내종합식품","L1011","www.famiros.com"],[201,"파미농원",0,"국내종합식품","C8603","https://www.farmifarm.com/"],[202,"Ferro tech Co., Ltd",1,"해외수입식품","A8107","-"],[203,"쌍마표 초장",0,"국내종합식품","B5406","www.ientree.com"],[204,"프랑스 육가공 산업 협회",0,"해외수입식품","A8601","https://www.fict.fr/"],[205,"프레쉬벨",0,"국내종합식품","A4101","www.freshbell.co.kr"],[206,"Fujian Ranli Food Group Co., Ltd",1,"해외수입식품","A9104","-"],[207,"감선옥",0,"국내종합식품","C7202","www.gamseonok.kr"],[208,"주식회사 지니인터내셔날",0,"국내종합식품","B3507","http://nopolab.com"],[209,"주식회사 그래미",0,"국내종합식품","A5603","www.glami.com"],[210,"묵끄럽",0,"해외수입식품","B2115","https://www.groobs.co.kr/"],[211,"거문도해풍쑥영농조합법인",0,"국내종합식품","B3301","www.gmdssuk.com"],[212,"무인과일냉장키오스크 오롯미니",0,"기계/솔루션","C6003","www.orotfruit.com"],[213,"좋은영농조합법인",0,"국내종합식품, 해외수입식품","B2502","https://www.goodfnb.com/"],[214,"그린피스농장",0,"국내종합식품","C8401","https://greenco.kr/"],[215,"그린페블",0,"국내종합식품","B2710","www.greenpebble.co.kr"],[216,"그린상점",0,"국내종합식품","C6204","https://store.kakao.com/gogreenshop"],[217,"GUANGXI GOLDEN THROAT CO.,LTD.",1,"해외수입식품","A8418","http://www.gxjsz.com/"],[218,"구즉주조장",0,"국내종합식품","J1003","gujeuk.com"],[219,"주식회사 광군컴퍼니",0,"국내종합식품","C6409","https://www.gwanggun.com"],[220,"강동퓨어푸드",0,"국내종합식품","A5302","https://kygfood.com/"],[221,"주식회사 강원수출",0,"국내종합식품, 기타","C6410","https://gwexport.co.kr"],[222,"농업회사법인(주) 가람솔",0,"국내종합식품","B5715","www.hangacho.com"],[223,"가림다마을영농조합법인",0,"국내종합식품","C8508","https://garimda.kr/"],[224,"이안오름",0,"국내종합식품","B5207","www.ianorm.kr"],[225,"제주목초밸리",0,"국내종합식품","B3602","https://www.giirin.com/"],[226,"소금빛",0,"국내종합식품","A3301","https://www.instagram.com/jejulavasalt"],[227,"(주)착한습관",0,"국내종합식품","C8102","www.goodhabit.care"],[228,"광령푸드",0,"국내종합식품","B5502","www.jejugnfood.com / www.mehls.co.kr"],[229,"경북햇살농원영농조합법인",0,"국내종합식품","B4406","https://www.gbsunfarm.co.kr/kor/02brand/brand.html"],[230,"(주)경기수출",0,"국내종합식품","C8506","http://gexport.or.kr/dh/customer_foreign"],[231,"에이치9인터내셔널",0,"국내종합식품, 기타","B2201","www.h9int.com"],[232,"하비랑",0,"국내종합식품","A2101","habirang.com"],[233,"하동군",0,"국내종합식품, 기타","C6501","https://www.hadong.go.kr/"],[234,"(주)해청정",0,"국내종합식품","B3301","https://haechomiin.com/"],[235,"(주)한부각 농업회사법인",0,"국내종합식품","A6415","www.hanbugak.kr"],[236,"한계령웰빙영농조합법인",0,"국내종합식품","A2506","www.hwellgeing.co.kr"],[237,"오동리",0,"국내종합식품","B1302","ehanmadang.com"],[238,"(주)하트피스",0,"국내종합식품","C7405","https://www.hartpiece.com/brand/brand_story.html"],[239,"HEM파마",0,"기계/솔루션","C5303","https://www.hempharma.bio/"],[240,"HENAN EVER GLORY FOOD CO., LTD.",1,"해외수입식품","A8426","https://cn.evergloryfoods.com/"],[241,"헤스티아",0,"국내종합식품","A3315","https://hestiajeju.co.kr/"],[242,"흥부골농업회사법인(유)",0,"국내종합식품","A5509","https://smartstore.naver.com/heungbugol"],[243,"(주)에이치케이",0,"기계/솔루션","C2001","www.hkk.co.kr"],[244,"천연벌꿀 허니에센스",0,"국내종합식품","B2207","https://www.youtube.com/@honeyessence01"],[245,"코에도브루어리",0,"해외수입식품","W1004","coedo_kr@instagram"],[246,"에이치피앤씨",0,"기계/솔루션, 기타","C3606","https://perastar.hpnc.co.kr/"],[247,"HUITONG GREEN FOODS COMPANY OF LUSHI",1,"해외수입식품","A9503","-"],[248,"화진정공(주)",0,"기계/솔루션","C2104","www.foodcutter.co.kr"],[249,"화수담",0,"국내종합식품, 해외수입식품","B2607","https://smartstore.naver.com/hwasudam/products/13205782717?pid=Naver&af_dp=navershopping%3A%2F%2F&c=260101_p_Naver_product&deep_link_value=https%3A%2F%2Fsmartstore.naver.com%2Fhwasudam%2Fproducts%2F13205782717%3Fka_ref%3Dkakao%26ka_req_id%3DgOh4bYG5mB9lEUBZtH6wAA%26ka_template%3Ddefault&is_retargeting=true&dtm_source=KK&dtm_detail=gOh4bYG5mB9lEUBZtH6wAA&dtm_campaign=default&dtm_medium=OG"],[250,"복숭아 스낵! 피치팝 & 세복이",0,"기타","B2107","sejong_peachjerky"],[251,"해남군농업기술센터",0,"기타","A5412","https://www.haenam.go.kr/index.9is?contentUid=18e3368f791cfd5d0179354427963c90"],[252,"유한회사 해성인터내셔널 / 복드림",0,"국내종합식품","C6411","https://haesungint.com/"],[253,"씨푸드베이",0,"국내종합식품","A2106","https://www.haetpoom.com/"],[254,"㈜하인스",0,"기계/솔루션","C5001","hains.kr"],[255,"학예당",0,"국내종합식품","B3202","https://hakyedang.com/"],[256,"함안농부협동조합",0,"기타","A2602","https://smartstore.naver.com/hamanfarm"],[257,"함양농협",0,"국내종합식품","L1013","jhn.nonghyup.com"],[258,"나날",0,"국내종합식품","C8106","www.nanal1992.com"],[259,"Han Traceability (Shaanxi) Biological Technology Co., Ltd.",1,"해외수입식품","A9203","`"],[260,"하늘아삭",0,"국내종합식품","C8108","www.skypear.co.kr"],[261,"(주)한식품",0,"국내종합식품, 해외수입식품","A5303","hanfoods.net"],[262,"(주)힐링바이오",0,"국내종합식품","A4309","www.cheongin.co.kr"],[263,"바우플 & 헬로우 마카다미아",0,"국내종합식품","C7501","www.hellohaturekorea.com"],[264,"Henan Boxin Bio-technology Co., Ltd",1,"해외수입식품","A9404","http://en.hnboxin.com"],[265,"Henan Grenbos Packaging Materials Co., Ltd",1,"해외수입식품, 기계/솔루션","A8423","/"],[266,"Henan Haoquwei Import and Export Trading Co., Ltd.",1,"해외수입식품","A8428","www.haoquwei.cn"],[267,"Henan Huachuang Food Co., Ltd.",1,"해외수입식품","A8508","-"],[268,"Henan Jiuxi Food Co., Ltd.",1,"해외수입식품","A9303","-"],[269,"Henan Qiqiang Food Co., Ltd",1,"해외수입식품","A8507","-"],[270,"흥부산업(주)",0,"기계/솔루션","C3201","https://hbk.kr/"],[271,"(주)호반식품",0,"국내종합식품","A3106","http://hobanfood.co.kr/"],[272,"Hunan Xiang Qu Food Co., Ltd.",1,"해외수입식품","A9103","-"],[273,"풍정사계",0,"국내종합식품","J1004","hwayang.co"],[274,"아이더스에프앤비_유미네 떡볶이",0,"국내종합식품, 기타","B4803","https://puradakchicken.com/main/"],[275,"일성영농조합법인",0,"국내종합식품","C8103","www.ilsung47.com"],[276,"주식회사 인큐스",0,"기계/솔루션","C1402","www.incus.kr"],[277,"자동 김밥기계 [쿠드로이드]",0,"기계/솔루션","C0001","www.coodroid.net"],[278,"주식회사 이노패키지",0,"기계/솔루션","A7214","www.innopack.co.kr"],[279,"인테이크",0,"국내종합식품, 기타","C7101","https://www.shopintake.com/"],[280,"농업회사법인인투주식회사",0,"국내종합식품","C8104","www.intojeju.co.kr"],[281,"주식회사 이탈코인터내셔널",0,"해외수입식품","J4004","https://italco.co.kr/"],[282,"밥꽃한과",0,"국내종합식품","A4603","www.babflower.shop"],[283,"1997떡볶이",0,"국내종합식품","B5201","www.1997tteokbokki.com"],[284,"JAPAN RICE PRODUCTS (FOODEX JAPAN)",1,"해외수입식품","A8501","https://foodex.jma.or.jp/en/"],[285,"\"JAPAN'S FOOD\" EXPORT FAIR",1,"기타","A9102","https://www.jfex.jp/jpfood/ko-kr.html"],[286,"전남바이오진흥원",0,"국내종합식품","A5206","www.jbf.kr"],[287,"JEAN HERVE",1,"해외수입식품","A8401","https://www.jeanherve.fr/"],[288,"제주한스푼",0,"국내종합식품","A3314","www.jejuonespoon.com"],[289,"주식회사 진맛김",0,"국내종합식품","A3401","jinmatgim.com"],[290,"(주)지니제이인터내셔널",0,"국내종합식품, 해외수입식품","C7406","www.jinnyj.com"],[291,"제이에스푸드텍 주식회사",0,"국내종합식품","C6605","www.jsfoodtech.com"],[292,"농업회사법인 (주)주안푸드",0,"국내종합식품","C8204","www.juanfood.co.kr"],[293,"대추담",0,"국내종합식품","B2104","https://jujubedam.com"],[294,"정남미명과",0,"국내종합식품","C8403","https://jungnammi.com/"],[295,"주시파이",0,"국내종합식품","C6203","www.jusify.co.kr"],[296,"박재영발효본가",0,"국내종합식품","B2506","http://jystory.kr"],[297,"제주미네랄솔트",0,"국내종합식품","A3301","www.mineralsalt.co.kr/"],[298,"제주 감귤 100% 발사믹 식초",0,"기타","A3305","www.jejuvinegar.com"],[299,"제라진컴퍼니",0,"국내종합식품","B4105","www.simfro.com"],[300,"Jiulong County Yingtonghui Ecological Agriculture Development Co., Ltd.",1,"해외수입식품","A9402","-"],[301,"케이벨로팜스",0,"해외수입식품","A8203","없음"],[302,"케이첩",0,"국내종합식품","B5802","www.kchup.co.kr"],[303,"주식회사 케이마린바이오테크",0,"기타","A3301","www.dunawell.com"],[304,"케이씨인터내셔널",0,"해외수입식품","B2504","http://kcinternational.co.kr/"],[305,"김군자바이오",0,"국내종합식품","A3407","https://kimgunjahongsamran.com/"],[306,"(주) 킹센스",0,"기타","C4107","http://www.kingsens.co.kr"],[307,"꽃을담다 X 알디프",0,"국내종합식품","C6207","https://www.iloveflowertea.com/"],[308,"지식재산처",0,"기타","C6407","https://www.koipa.re.kr/"],[309,"주식회사 쿠드",0,"국내종합식품, 기타","C7201","https://www.koody.co.kr"],[310,"(주)한국제면",0,"국내종합식품","C7305","https://thenoodletree.com/"],[311,"한국세븐캐슬무역",0,"해외수입식품, 기계/솔루션","C1102","www.sevencastle.co.kr"],[312,"강봉석조청 주식회사",0,"국내종합식품","B5412","www.kangbongseok.co.kr"],[313,"KARUMU FABRIKA LTD",1,"해외수입식품","A8503","www.mons.lv"],[314,"한국식품안전관리인증원",0,"국내종합식품","A7202","https://www.haccp.or.kr/"],[315,"(사)한국콜드체인협회",0,"기타","C4503","www.kfcca.kr"],[316,"고려자연푸드",0,"국내종합식품","C6205","http://dooraeone.com/en/main/"],[317,"(주)한국초음파",0,"기계/솔루션","C0301","www.Kdonic.Kr"],[318,"마미앤대디",0,"국내종합식품, 기타","C6012","https://mommydaddy.co.kr/index.html"],[319,"(사)대한민국식품명인",0,"국내종합식품, 기타","A7118","https://kfgm.co.kr/"],[320,"경일주방",0,"기계/솔루션","C2401","https://kyungil.biz/"],[321,"라포즈미",0,"국내종합식품","C6201","www.lapauseme.co.kr"],[322,"마음미음",0,"국내종합식품","B5206","maeum-meeum.com"],[323,"리프잇",0,"국내종합식품","B5509","https://leafit.kr/"],[324,"르팔러키친",0,"국내종합식품","B1204","https://www.leparlour.co.kr"],[325,"LUOYANG ANTU PLASTIC PRODUCTS CO., LTD.",1,"해외수입식품","A8420","0"],[326,"게으른트렌드",0,"국내종합식품","B5610","https://www.instagram.com/thelazytrend.official"],[327,"르 꼬르동 블루",0,"기타","B5405","www.cordonbleu.edu"],[328,"리빙라이프 / 리뉴파이",0,"기타","L1032","https://www.elivinglife.co.kr/"],[329,"주식회사 로컬오누이",0,"국내종합식품","C8302","http://localonui.co.kr/"],[330,"저당 K-핫소스 핫탭",0,"국내종합식품","B2505","https://www.locallow.com"],[331,"Luonan County Yiyuan Agricultural and Sideline Products Development Co., Ltd.",1,"해외수입식품","A9202","-"],[332,"Luzhou Yu Quan Deuterium Depleted Water Co.,Ltd.",1,"해외수입식품","A8408","http://www.lzyuquan.cn/"],[333,"LvLiang Yeshanpo Food co., Ltd",1,"해외수입식품","A8416","www.yspshaji.com"],[334,"MARIE MORIN FRANCE",1,"해외수입식품","A8401","https://marie-morin.fr/en/"],[335,"마스브루어리 (주)화성양조장 농업회사법인",0,"국내종합식품","C6002","www.marsbrewery.co.kr"],[336,"마루사야코리아(주)",0,"해외수입식품","A2211","www.katuobusi.co.kr"],[337,"(주)밀투고",0,"국내종합식품","C6507","www.meal2go.co.kr"],[338,"메멜트",0,"국내종합식품","B2602","smartstore.naver.com/memelt"],[339,"(주)맑은상회에프앤비",0,"국내종합식품","A6507","www.mestfnb.com"],[340,"포포차차",0,"국내종합식품","B4701","https://www.instagram.com/popochacha.foods/"],[341,"(주) 모닝아트",0,"기계/솔루션","C0202","https://www.morningart.co.kr/"],[342,"유한회사 마이푸드",0,"국내종합식품","A5504","https://www.myfd.kr/"],[343,"(주)명성식품",0,"국내종합식품, 해외수입식품","B2209","https://smartstore.naver.com/msfood7766"],[344,"막지",0,"국내종합식품, 해외수입식품","B2408","www.makji.kr"],[345,"EXPO MONGOLIA",1,"해외수입식품","A8117","www.mandora.mn"],[346,"마니커에프앤지",0,"국내종합식품","C8207","https://www.manikerfng.com/"],[347,"주식회사 만풍농업회사법인",0,"국내종합식품","A7104","https://www.manpungmall.com/"],[348,"장석열흑삼",0,"국내종합식품","C6202","www.blackginseng.io"],[349,"(주)맛찬들백미식품",0,"국내종합식품","A5306","http://ibaekmee.com"],[350,"밀앤스토리",0,"국내종합식품","A4604","www.mealandstory.com"],[351,"전통의 멋과 엿을 더하다",0,"국내종합식품","A5503","www.tosokfood.co.kr"],[352,"Mindtech LLC",1,"해외수입식품","","www.selengefactory.mn"],[353,"식품의약품안전처_HACCP(해썹)",0,"기타","C5501","https://www.mfds.go.kr/"],[354,"식품의약품안전처",0,"기타","","https://www.mfds.go.kr/index.do"],[355,"모드니애 자연단백질·동충하초",0,"국내종합식품","A5602","www.modnilove.com"],[356,"어이딸부각",0,"국내종합식품","C6505","https://smartstore.naver.com/eoittal"],[357,"미스터밀크",0,"국내종합식품","C7404","https://mrmilk.co.kr/"],[358,"문래양조",0,"국내종합식품","B1202","https://mullaebrewery.oopy.io/"],[359,"멀티박코리아 (주)",0,"기계/솔루션","C3508","https://multivac.com/kr/ko"],[360,"명동종합식품",0,"국내종합식품","A4607","https://mdtf.co.kr/"],[361,"N.E.AGRO INDUSTRY CO.,LTD.",1,"","A8106","www.facebook.com/profile.php?id=100050654756351&rdid=0OfF5ljDN0ZZcAoB&share_url=https%3A%2F%2Fweb.facebook.com%2Fshare%2F14cw2vzs4Q9%2F%3F_rdc%3D1%26_rdr#"],[362,"주식회사 나드리푸드",0,"국내종합식품","A6407","www.nadrifood.co.kr"],[363,"노은정미소",0,"국내종합식품","B2305","https://noeunrice.com/"],[364,"주식회사 농가식품",0,"국내종합식품","C7304","www.nonggafood.co.kr/"],[365,"농심",0,"국내종합식품","B4101","https://www.nongshim.com/main/index"],[366,"(주)뉴트라코어",0,"국내종합식품, 기타","B5803","www.nutracore.co.kr"],[367,"나과",0,"국내종합식품","J3003","https://www.instagram.com/nagwa_craft/"],[368,"남원미꾸리추어탕협동조합",0,"국내종합식품, 해외수입식품","A6504","https://miguri.com/"],[369,"(주)남양에이치앤비",0,"국내종합식품","A5507","https://smartstore.naver.com/namyanghb?NaPm=ct%3Dmvq702wa%7Cci%3Dcheckout%7Ctr%3Dds%7Ctrx%3Dnull%7Chk%3D3b1ffae3150a6d4b2824c846810d8e2dc15a6d55"],[370,"농협경제지주(주)",0,"국내종합식품","A2203","http://www.nhabgroup.com/user/indexMain.do?siteId=nhabgroup"],[371,"Hushkhan",1,"해외수입식품","A8103","www.hushkhan.mn"],[372,"누룩담",0,"국내종합식품","B3610","sell.smartstore.naver.com"],[373,"주식회사 누리팜",0,"기타","C6011","https://promune.co.kr/"],[374,"(주)오에이엠",0,"국내종합식품","C8410","https://smartstore.naver.com/oonyul"],[375,"오성시스템(주)│식품 자동포장기 전문기업",0,"기계/솔루션","C4001","packing21.com"],[376,"오키나와현서울사무소",0,"해외수입식품","A8105","https://blog.naver.com/okinawa-seouloffice"],[377,"오쿠노 한국",0,"기타","C6301","https://www.okuno.co.jp/kr/"],[378,"올리바레라 로스 페드로체스",0,"해외수입식품","A8304","www.olipe.com"],[379,"오마뎅",0,"국내종합식품, 해외수입식품","C8301","www.omadeng.com"],[380,"주식회사 오늘",0,"국내종합식품","A7206","https://onlcorp.com"],[381,"농업회사법인(주)온샘",0,"국내종합식품","C6309","https://www.onsem.co.kr"],[382,"오롯식품연구소",0,"국내종합식품","L1014","https://www.instagram.com/oroat_lab"],[383,"오쏘트루",0,"기타","A3306","www.osotrue.com"],[384,"스타즈트레이더스",0,"해외수입식품","L1028","https://charbonnel.kr"],[385,"오성푸드(주) 어업회사법인",0,"국내종합식품","A2302","www.onmirang.com"],[386,"(주) 오뚜기",0,"국내종합식품","B5000/B5001","www.otoki.com"],[387,"오뚜기 SF",0,"국내종합식품","B2402","https://otoki-sf.com/"],[388,"오직미(주), 쌀에대한 모든 것!",0,"국내종합식품, 해외수입식품","A3104","www.ozicme.com"],[389,"(주)원스인터내셔널",0,"국내종합식품","A1202","www.onesintl.com"],[390,"옹고집영농조합법인",0,"국내종합식품","C7303","https://onggojib.com/"],[391,"주식회사 팩터(크리팩)",0,"국내종합식품, 기타","B1003","https://crepack1.cafe24.com/"],[392,"박민준커피스튜디오",0,"국내종합식품","L1005","https://www.instagram.com/parkmj_coffeestudio"],[393,"피엔에스 와인컴퍼니",0,"해외수입식품","J3002","https://www.instagram.com/pns_wine_company/"],[394,"(주)프라임 x (주)웰프라임",0,"기계/솔루션","C1301","https://wpraim.com/"],[395,"평산댁 닭발",0,"국내종합식품","B5108","https://smartstore.naver.com/momsmomfnb"],[396,"PT MITRA TIGA SEPAKAT",1,"해외수입식품, 기타","A9101","https://mitratigasepakat.co.id/"],[397,"푸른바다어묵",0,"국내종합식품","A5502","www.365fishcake.com"],[398,"(주) 팡마니",0,"국내종합식품","B3412","http://www.pangmani.com/"],[399,"주식회사 포부",0,"기계/솔루션","B5203","https://yoroke.com"],[400,"(주)프로바이오닉",0,"국내종합식품, 해외수입식품","B1401","www.probionic.com"],[401,"프로제산내",0,"국내종합식품","L1027","www.projetsanne.com"],[402,"QUANYI(SHAANXI) IMPORT AND EXPORT TRADING CO.,LTD",1,"해외수입식품","A8417","-"],[403,"R.S. FOODS TECH (THAILAND)",1,"해외수입식품","","www.rsfoodstech.co.th"],[404,"리이치24시코리아㈜",0,"국내종합식품, 해외수입식품","A7213","https://www.reach24h.com/ko/"],[405,"와인소주 한잔",0,"국내종합식품","B5304","www.realtrade.co.kr"],[406,"RED SAKURA FOOD CO., LTD.",1,"해외수입식품","A8116","https://www.redsakura.com.tw/pages/redsakura-en"],[407,"농업회사법인 리뉴얼라이프(주)",0,"국내종합식품","C8310","https://www.renewallife.com"],[408,"아이엠그리너",0,"기타","B5707","https://iamgreener.co.kr"],[409,"RICCA FLAVOUR / RICCA PHARMACEUTICAL",1,"해외수입식품, 기타","A8208","www.riccapharma.com"],[410,"오늘을 채우는 보양, 오늘도흑염룡",0,"국내종합식품","B5717","https://ririscorporation.imweb.me/index"],[411,"루트인",0,"국내종합식품","B5718","https://www.rootin.kr/"],[412,"임실치즈 두마리목장",0,"국내종합식품","A3409","www.doomari.net"],[413,"라온코퍼레이션",0,"국내종합식품","C7403","http://www.raon2017.co.kr/"],[414,"Rungroj Fish Sauce Co., Ltd.",1,"해외수입식품","","http://www.rungrojfishsauce.com"],[415,"Runshi Mingdian Industries Corporation",1,"해외수입식품","A8415","-"],[416,"주식회사 에스팩토리",0,"국내종합식품","C6607","https://s-factory.kr/"],[417,"농업회사법인 주식회사 새벽팜",0,"국내종합식품","C8503","https://www.saebyeokfarm.com/"],[418,"(주) 새한그레인",0,"국내종합식품","C8402","www.saehangrain.com"],[419,"주식회사 삼제이",0,"국내종합식품","C8601","jjjkimchi.com/en"],[420,"기꼬만, 라코스테냐",0,"해외수입식품","B4309/B5301","https://samkyoung.com/"],[421,"샹달프, 하리토스",0,"해외수입식품","B4307/B5307","https://samkyoung.com/"],[422,"델쥬아",0,"국내종합식품","A7701","https://brand.naver.com/deljoie"],[423,"(주)씨월드",0,"국내종합식품","B4604","www.sea-world.co.kr"],[424,"주식회사 시크한",0,"기계/솔루션","C3501","www.seekhan.com"],[425,"(주)에스이아이엘",0,"기계/솔루션, 기타","A4001","www.seil88.com"],[426,"농업회사법인(주)설악산그린푸드",0,"국내종합식품","C6310","www.sgreenfood.co.kr"],[427,"한국에스지에스(주) 식품건강사업부",0,"기타","A7204","https://www.sgs.com/ko-kr"],[428,"SHAANXI JIWEI FOOD CO.,LTD",1,"해외수입식품","A8506","https://www.konjacbrothers.com/"],[429,"SHAANXI JORYHERB BIO-TECHNOLOGY CO., LTD.",1,"해외수입식품","A9405","www.joryherb.com"],[430,"SHAANXI MENGYIGOU ECOLOGICAL AGRICULTURE TECHNOLOGY CO. , LTD.",1,"해외수입식품","A8608","-"],[431,"SHAANXI QINYI AGRICULTURAL DEVELOPMENT CO., LTD.",1,"해외수입식품","A8607","-"],[432,"(주)신성티엔에프",0,"국내종합식품","C7301","https://www.shinsungtnf.com/"],[433,"신영에이치에스",0,"국내종합식품","B2704","www.shinyoungmall.co.kr/?"],[434,"시케",0,"국내종합식품, 해외수입식품","L1007","sike.kr"],[435,"주식회사 싱싱캔",0,"기계/솔루션, 기타","A2304","http://www.singsingcan.com/"],[436,"신성호1957",0,"국내종합식품","L1026","https://litt.ly/sinsungho_1957"],[437,"시오브",0,"국내종합식품","B1203","www.siob.kr"],[438,"설로인(주)",0,"국내종합식품, 기타","B4501","www.sirloin.co.kr"],[439,"에스엘",0,"국내종합식품, 해외수입식품","B2101","smartstore.naver.com/minomino3"],[440,"솔푸드(주)",0,"국내종합식품","A2209","http://hifd.kr/"],[441,"크각크각",0,"국내종합식품","B2114","www.instagrm.com/kgak_official"],[442,"술로우",0,"국내종합식품","B5510","www.soolow.kr"],[443,"스파이스업",0,"국내종합식품","B5204","https://smartstore.naver.com/spiceup"],[444,"쌀통닭",0,"국내종합식품, 기타","B4106","https://ssaltongdak.com/"],[445,"(주)에스티알바이오텍",0,"국내종합식품","C5302","www.strbiotech.co.kr"],[446,"마이크로아티장",0,"국내종합식품, 기타","B5205","microgarden.co.kr"],[447,"(주)선경인케이",0,"기계/솔루션","C3001","skik.co.kr"],[448,"㈜에스와이솔루션",0,"국내종합식품","B2407","sysolutioninc.com"],[449,"새록담",0,"국내종합식품","B3501","www.saerokdam.com"],[450,"삼진식품",0,"국내종합식품","A7315","www.samjinfoods.com"],[451,"삼성식품(양갱애)",0,"국내종합식품","C7402","www.samsungfood.co.kr"],[452,"상상바이오",0,"국내종합식품","B3401","https://www.qoem.co.kr/"],[453,"세다람쥐코리아",0,"해외수입식품","B5604","https://sedaramjwi.com/"],[454,"Seitenbacher Vertriebs GmbH",1,"해외수입식품","A8504","www.seitenbacher.de"],[455,"성남시",0,"국내종합식품","","https://seongnam.go.kr"],[456,"설악산 단풍빵",0,"국내종합식품","B2301","http://www.cookie14.co.kr/"],[457,"Shaanxi Herbomate Bio-Tech Co.,Ltd.",1,"해외수입식품","A8427","www.herbomate.com"],[458,"Shaanxi Honggulin Food Co., Ltd.",1,"해외수입식품","A9501","-"],[459,"Shaanxi Jiedong Fruit Juice Co.,ltd",1,"해외수입식품","A8509","-"],[460,"Shaanxi Qingchuang Alliance E‑commerce Co., Ltd.",1,"해외수입식품","A8008","-"],[461,"Shaanxi Sinricon Biotechnology Co., Ltd.",1,"해외수입식품","A9406","www.sinricon.com"],[462,"Shaanxi Wanshun Food Co., Ltd.",1,"해외수입식품","A9403","-"],[463,"SHAANXI YANGSHI AGRICULTURAL DEVELOPMENT CO., LTD.",1,"해외수입식품","A8007","-"],[464,"Shangqiu JunGuo Food Co., Ltd",1,"해외수입식품","A8308","-"],[465,"㈜신성하인스",0,"기계/솔루션","C5001","ssung.kr"],[466,"Sichuan Mumen Tea Industry Co., Ltd.",1,"해외수입식품","A8406","-"],[467,"Sichuan Qiancun Native Products Co., Ltd.",1,"해외수입식품","A8409","-"],[468,"(유)신우S&F",0,"국내종합식품","A8606","https://www.sinwoosnf.co.kr/"],[469,"슬로우포어스",0,"국내종합식품, 기타","B2701","https://www.instagram.com/slowsweetlab"],[470,"어업회사법인 섬을 담다 주식회사",0,"국내종합식품","C8007","http://www.gaboja1985.com/"],[471,"김소스",0,"국내종합식품","C6606","www.gimsauce.com"],[472,"봉농원 명인딸기",0,"국내종합식품","A2401","www.bongfarms.co.kr"],[473,"Suzhou Youi Group Co., LTD.",1,"해외수입식품","A9302","-"],[474,"(주)티아그로즈",0,"국내종합식품","B3704","https://www.ohsoybean.com/22"],[475,"태성푸드",0,"국내종합식품","A4606","www.energybus.net"],[476,"(주)태영이앤티",0,"기계/솔루션","C3304","www.tyent.co.kr"],[477,"TAIAN LIXINYUAN INDUSTRY AND TRADE CO.,LTD",1,"해외수입식품","A8309","-"],[478,"알렛",0,"국내종합식품","B2112","http://www.tai-san.co.kr"],[479,"더바른떡",0,"국내종합식품","B3201","https://www.bareunkr.com"],[480,"주식회사 더 신전",0,"국내종합식품, 기타","B4601","http://thesinjeon.com/"],[481,"주식회사 더나은에프앤비",0,"기타","B3510","thenaeunfnb.com"],[482,"입술 LIPSUL",0,"국내종합식품","B4401","https://www.thisis.co.kr"],[483,"티바인",0,"국내종합식품","B5409","tivine.shop"],[484,"(주)티엠이엔지",0,"기계/솔루션","C4301","www.tmeng.kr"],[485,"필그램",0,"기타","C5305","https://pillgram.kr/"],[486,"마루노바 호두대학",0,"국내종합식품","B5208","www.marunova.com"],[487,"(주)투플레이",0,"국내종합식품","A3301","https://smartstore.naver.com/toplay"],[488,"주식회사 거북이달린다",0,"국내종합식품","B5714","https://www.turtlerun.co.kr/"],[489,"주식회사 트윈에프앤비",0,"기계/솔루션","C3413","www.twinfnb.com"],[490,"Taliin Deej Khuns LLC",1,"해외수입식품","","https://www.facebook.com/profile.php?id=61578027684351"],[491,"(주)팀에브리웨어",0,"기계/솔루션","C5402","https://www.orca.partners"],[492,"(주)더본코리아",0,"국내종합식품","C6307","https://www.theborn.co.kr/"],[493,"The Better Butchers",1,"해외수입식품, 기타","A8303","https://www.thebetterbutchers.com/"],[494,"더 더치 치즈앤모어",0,"해외수입식품","B5504","https://thedutch.kr"],[495,"(주)더그리트",0,"기계/솔루션","C3607","https://thegreet.co.kr/"],[496,"틴지오브소울 - 프리미엄 티",0,"국내종합식품, 해외수입식품","B2604","www.tingeofsoul.co.kr"],[497,"(주)티움글로벌",0,"국내종합식품","B5103","www.blingbooster.com"],[498,"티라운드",0,"국내종합식품","C7003","https://www.amazon.com/stores/TROUND/page/48F7BC6A-8705-4EFE-A5F2-00FDCBFC8B71?lp_asin=B0GVDVDDJY&ref_=ast_bln&store_ref=bl_ast_dp_brandlogo_sto&bl_grd_status=override"],[499,"주식회사 트라이포드랩",0,"기계/솔루션","C3412","https://earlivery.com/"],[500,"Tsaidam Trade LLC.",1,"해외수입식품","","https://buramhan.com/"],[501,"떡주니떡방",0,"국내종합식품","A2501","https://map.naver.com/p/entry/place/1907035299?placePath=%2Fhome%3Fentry%3Dplt%26from%3Dmap%26fromPanelNum%3D1%26additionalHeight%3D76%26timestamp%3D202608101427%26locale%3Dko%26svcName%3Dmap_pcv5&searchType=place&lng=128.2046542&lat=38.1223508"],[502,"움트다앤코끼리카페",0,"국내종합식품","C7104","https://www.umtiva.com"],[503,"유니콘프",0,"해외수입식품","","https://www.uniconf.ru/"],[504,"(주)유앤아이원",0,"국내종합식품","C8208","www.unionekr.com"],[505,"유니크바이오텍(주)",0,"국내종합식품","B1402","www.uniquebiotech.co.kr"],[506,"미국가금류수출협회",0,"해외수입식품","A8201","https://www.usapeec.co.kr/"],[507,"미국쌀협회",0,"해외수입식품","A8301","usarice.co.kr"],[508,"울산광역시 울주군",0,"기타","A5001","https://www.ulju.ulsan.kr/ulju/main.do"],[509,"(주)비브리브",0,"국내종합식품","B3417","https://vivliv.co.kr/"],[510,"또야미",0,"국내종합식품, 기타","C8201","https://www.vkcompany.co.kr/"],[511,"생분해성 PAA 살균소독 솔루션 기업 포어스",0,"국내종합식품","A2207","www.vorskorea.com"],[512,"주식회사 위드라이크",0,"국내종합식품, 해외수입식품","B5506","https://wedlike.co.kr/"],[513,"큐라 QURA 이너뷰티 젤리",0,"국내종합식품","C6010","https://quraread.com/"],[514,"자 일 리 톨 스 톤",0,"국내종합식품, 기타","L1031","www.xylitolstone.com"],[515,"와인브라더스",0,"해외수입식품","J4002","https://www.instagram.com/winebrothers_int/"],[516,"와인랩스",0,"국내종합식품","J4003","https://winelabs.co.kr"],[517,"클레망포지에 크렘드마롱",0,"해외수입식품","A8401","https://clementfaugier.kr/"],[518,"주식회사 와우에프엔티",0,"국내종합식품, 해외수입식품","A1103","1"],[519,"누들리",0,"국내종합식품","A5404","https://www.wellbeing-garden.com/"],[520,"흑색건강",0,"국내종합식품","C8505","https://wellsblack.com/"],[521,"퓨리티",0,"해외수입식품","B2000","https://www.puritikorea.com/"],[522,"(주) 원그대로",0,"국내종합식품, 해외수입식품","A2208","www.wongeudaero.com"],[523,"주식회사 우리원",0,"국내종합식품","L1030","wurione.com"],[524,"(주)자비스",0,"기계/솔루션","A7201","www.xavis.co.kr"],[525,"Xinxiang Yuanfeng Calcium Industry Co., Ltd.",1,"해외수입식품","A9502","www.xxyfgy.com"],[526,"Xuchang Fuxianji Food Co., Ltd",1,"해외수입식품","A8422,A8421","-"],[527,"영양고추유통공사",0,"국내종합식품","A5601","www.yyrptc.or.kr"],[528,"영주시",0,"국내종합식품, 기타","A6405","https://www.yeongju.go.kr/open_content/main/index.do"],[529,"셰프의 레시피를 담다, 셰프의 장",0,"국내종합식품","A5510","https://younginbio.com/"],[530,"(주)유림고려홍삼",0,"국내종합식품","C6604","WWW.YURIMKOREA.CO.KR"],[531,"Yangling Hope Food Co., Ltd",1,"해외수입식품","A9201","https://www.xiwangfood.com/"],[532,"피비핏",0,"해외수입식품","B2711","https://yenni.kr/index.html"],[533,"영주포도수출영농조합",0,"국내종합식품","A6404","k-grap.com"],[534,"지오코퍼레이션",0,"국내종합식품","C8202","www.ziocorporation.com"],[535,"주식회사 주비푸드",0,"국내종합식품, 기타","A5405","www.zoobee.co.kr/"],[536,"Zhengzhou Jialong Food Co.,Ltd.",1,"해외수입식품","A8306,A8307","https://www.jlspjt.com"],[537,"aT스튜디오",0,"기타","A7120","https://at-studio.or.kr/"],[538,"벌키니",0,"국내종합식품","A2003","www.bulkinny.com"],[539,"까미노사이더리",0,"국내종합식품","A3503","http://caminocidery.com/"],[540,"(주)초이스키친",0,"국내종합식품","B3601","www.choicekitchen.kr"],[541,"궁중해물탕조씨집",0,"기타","C6311","https://smartstore.naver.com/chossijib"],[542,"코너케이크스튜디오",0,"국내종합식품","B2603","https://www.instagram.com/_cornercake"],[543,"생활맥주",0,"국내종합식품, 해외수입식품, 기타","J3005","www.dailybeer.co.kr"],[544,"주식회사 델루가",0,"국내종합식품","B4405","www.delluga.com"],[545,"두레식품 갓갓한과",0,"국내종합식품, 기타","B2705","https://www.instagram.com/gatgat__hangwa"],[546,"이지바이트",0,"국내종합식품","B2706","www.easybite.kr"],[547,"날마다차한잔",0,"국내종합식품","B5601","www.instagram.com/everyday_acupoftea_official/"],[548,"안녕쌍화",0,"기타","B2608","fruiterie.co.kr"],[549,"(주) 한맥식품",0,"국내종합식품","A7101","https://hanmacmall.com/"],[550,"한울",0,"국내종합식품, 해외수입식품, 기타","B3605","https://www.hanwoolmall.com/"],[551,"힘찬마루",0,"국내종합식품, 기타","A6502","www.himchanmaru.com"],[552,"(주)아이투알코리아",0,"기타","A4301","www.i2rkorea.com"],[553,"제이농산",0,"국내종합식품","A1404","farms.co.kr"],[554,"지리산묵가1935",0,"국내종합식품","A6506","www.jirisanmukka.com"],[555,"꽃다숨정미란",0,"국내종합식품","A2502","www.kochdasum.com"],[556,"만나랑",0,"국내종합식품","B4702","https://www.instagram.com/manarangkorea?igsh=MXdzNWZoNWJ4MXJrOA=="],[557,"만족오향족발",0,"국내종합식품","B2805","www.manjok.net"],[558,"자연미당",0,"국내종합식품","B1206","https://www.instagram.com/natural_miidang/"],[559,"늘찬팜",0,"국내종합식품","A3601","https://ncf100414.cafe24.com/"],[560,"올리온 100% 메밀면 세모면",0,"국내종합식품, 해외수입식품","A6412","https://smartstore.naver.com/ollion"],[561,"파리키트",0,"국내종합식품","B3413","pariskit.com"],[562,"센드포유",0,"국내종합식품","A3307","www.sendforyoukorea.com"],[563,"서울먹거리창업센터",0,"국내종합식품, 해외수입식품, 기계/솔루션, 기타","","https://seoulfoodstartup.org/"],[564,"샤인프레시",0,"국내종합식품","B3418","shinefresh.co.kr"],[565,"소담공방협동조합",0,"기타","A2601","https://smartstore.naver.com/sodamcoop"],[566,"오스퀘어",0,"국내종합식품","B2102","www.squarefoodlab.com"],[567,"더밥",0,"국내종합식품, 해외수입식품","C7302","https://www.thebab.kr/"],[568,"우진트레이딩",0,"해외수입식품","B5705","tiktok.com/@youzhen228"],[569,"주식회사 연",0,"기타","C1406","http://www.yeon-company.com"],[570,"횡성한우떡볶이",0,"국내종합식품","A3504","https://smartstore.naver.com/hs_yedawon"],[571,"한국식품산업클러스터진흥원 K-푸드창업사관학교",0,"기타","A5210","https://www.foodpolis.kr/web/index.do"],[572,"청량원 김치Lab",0,"국내종합식품","B3414","https://smartstore.naver.com/kimchilab25"],[573,"동결 건조 라이프",0,"기계/솔루션","C5403","https://freeze-dry-life.base44.app/Home"],[574,"전국한우협회 & 한우자조금관리위원회",0,"국내종합식품","A1104","https://www.ihanwoo.org/"],[575,"식도락상점",0,"국내종합식품","A5501","SDORAK.COM"],[576,"자작나무숲원된장",0,"국내종합식품","A3502","smartstore.naver.com/924318106/profile"],[577,"꼬마루수제육포",0,"국내종합식품","B2702","kkomaroo74"],[578,"환경성적표지 인증제도",0,"기타","C6404","https://ecosq.or.kr/"],[579,"(주)세림향료",0,"국내종합식품, 해외수입식품","L1006","http://www.serimfnf.com/kor/"],[580,"토마텍주식화사",0,"기계/솔루션, 기타","A7601","www.tomatec.co.kr"],[581,"단물가게",0,"국내종합식품","B2503","WWW.단물가게.COM"],[582,"(주)포세이돈",0,"기타","C0203","www.4seidon.com"],[583,"(주)대력",0,"국내종합식품","C8407","https://www.df-dept.com/"],[584,"선경산업",0,"기계/솔루션","C3001","http://www.sun-kyung.co.kr/"],[585,"원글로벌코리아 (헝그리킴)",0,"국내종합식품","C8408","www.oneglobalkorea.com"],[586,"아가애",0,"국내종합식품","C8409","www.ccti.co.kr"],[587,"(주)바이오뉴트리젠",0,"국내종합식품, 해외수입식품","C6104","www.bionutrigen.com"],[588,"(주)진로발효",0,"국내종합식품","A4417","http://www.cleancohol.com/default/"]];
+/* [번호, 간판명, 영문대체(0/1), 품목, 부스번호, 홈페이지] */
+
+const CAT_COLOR = {'국내종합식품':'#3b8f5f','해외수입식품':'#3b6fb6','기계/솔루션':'#b0812a','기타':'#7a8494','미분류':'#a0a7b4'};
+const CATS = ['국내종합식품','해외수입식품','기계/솔루션','기타'];
+const NONE = '미분류';
+const QUICK = ['샘플 수령','견적 요청','재방문 예정','명함 교환','거래 검토'];
+
+const recs = DATA.map(d => ({
+  no:d[0], name:d[1], en:!!d[2],
+  items:d[3] ? d[3].split(',').map(s=>s.trim()).filter(Boolean) : [],
+  booth:d[4]||'', hp:d[5]||''
+}));
+const CH = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
+const cho = s => { let o=''; for (const c of s){ const n=c.charCodeAt(0)-44032; o += (n>=0&&n<11172)? CH[Math.floor(n/588)] : c; } return o; };
+const strip = s => s.replace(/^(\(주\)|㈜|\(유\)|\(사\)|주식회사|유한회사|농업회사법인|어업회사법인|재단법인|\s)+/,'').toLowerCase();
+recs.forEach(r => { r.key = r.name+'|'+r.booth; r.cho = cho(r.name); r.sk = strip(r.name); r.cats = r.items.length ? r.items : [NONE]; r.zone = r.booth ? r.booth[0].toUpperCase() : '미정'; r.link = linkOf(r.hp); });
+
+function linkOf(raw){
+  let s=(raw||'').trim(); if(!s) return null;
+  s = s.split(/\s+/)[0];
+  if(/@/.test(s) && !/^https?:\/\//i.test(s)) return null;
+  if(/^https?:\/\/\S+\.\S+/i.test(s)) return {href:s, label:s.replace(/^https?:\/\//i,'').replace(/\/$/,'')};
+  if(/^[^\s\/]+\.[^\s\/.]{2,}(\/\S*)?$/.test(s)) return {href:'https://'+s, label:s.replace(/\/$/,'')};
+  return null;
+}
+
+/* ---------- 저장소 ---------- */
+const SK='fw2026_search_v1';
+let store={memos:{},favs:{},ui:{}}, storageOK=true;
+try{ const raw=localStorage.getItem(SK); if(raw){ const o=JSON.parse(raw); store={memos:o.memos||{},favs:o.favs||{},ui:o.ui||{}}; } }catch(e){ storageOK=false; }
+const $ = id => document.getElementById(id);
+function persist(){ try{ localStorage.setItem(SK, JSON.stringify(store)); }catch(e){ storageOK=false; $('banner').style.display='block'; } }
+if(!storageOK) $('banner').style.display='block';
+
+/* ---------- 상태 ---------- */
+const st = { q:'', cats:new Set(), zone:'', sort:store.ui.sort||'name', view:store.ui.view||'list', fav:false, memo:false };
+
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const reEsc = s => s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+let hlRe = null;
+const hl = t => hlRe ? String(t).split(hlRe).map((p,i)=> i%2 ? '<mark>'+esc(p)+'</mark>' : esc(p)).join('') : esc(t);
+
+function tokens(){ return st.q.trim().toLowerCase().split(/\s+/).filter(Boolean); }
+function matches(r, toks){
+  if(!toks.length) return true;
+  const m = (store.memos[r.key]||{}).t||'';
+  const hay = (r.name+' '+r.items.join(' ')+' '+r.booth+' '+r.hp+' '+m).toLowerCase();
+  return toks.every(t => /^[ㄱ-ㅎ]+$/.test(t) ? r.cho.includes(t) : hay.includes(t));
+}
+
+const collator = new Intl.Collator('ko');
+const catIdx = r => Math.min(...r.cats.map(c => { const i=CATS.indexOf(c); return i<0?99:i; }));
+const sorters = {
+  name:(a,b)=> (a.en-b.en) || collator.compare(a.sk,b.sk),
+  booth:(a,b)=> (a.booth?0:1)-(b.booth?0:1) || a.booth.localeCompare(b.booth,undefined,{numeric:true}) || collator.compare(a.sk,b.sk),
+  cat:(a,b)=> catIdx(a)-catIdx(b) || collator.compare(a.sk,b.sk),
+  no:(a,b)=> a.no-b.no
+};
+
+function filtered(){
+  const toks = tokens();
+  return recs.filter(r =>
+    matches(r,toks) &&
+    (!st.cats.size || r.cats.some(c=>st.cats.has(c))) &&
+    (!st.zone || r.zone===st.zone) &&
+    (!st.fav || store.favs[r.key]) &&
+    (!st.memo || (store.memos[r.key]&&store.memos[r.key].t))
+  ).sort(sorters[st.sort]);
+}
+
+/* ---------- 렌더 ---------- */
+function tagHTML(c){ return '<span class="tag" style="--cc:'+(CAT_COLOR[c]||'#98a2b3')+'"><i></i>'+esc(c)+'</span>'; }
+function memoCell(r){
+  const m=(store.memos[r.key]||{}).t;
+  return m ? '<div class="txt">'+hl(m)+'</div>' : '<button class="add" tabindex="-1">+ 메모</button>';
+}
+function rowHTML(r){
+  const fav = store.favs[r.key];
+  const hp = r.link
+    ? '<a href="'+esc(r.link.href)+'" target="_blank" rel="noopener noreferrer" title="'+esc(r.hp)+'">'+hl(r.link.label)+'</a>'
+    : (/^[-\/.`0-9\s]*$|^없음$|^www\.?$/i.test(r.hp.trim()) ? '<span class="na">-</span>' : '<span class="na" title="접속 가능한 주소가 아닙니다">'+hl(r.hp)+'</span>');
+  return '<tr data-no="'+r.no+'">'
+    +'<td class="s"><button class="star'+(fav?' on':'')+'" aria-label="관심 표시" aria-pressed="'+(fav?'true':'false')+'">'+(fav?'★':'☆')+'</button></td>'
+    +'<td class="n"><span class="name">'+hl(r.name)+'</span>'+(r.en?'<small>영문</small>':'')+'</td>'
+    +'<td class="i"><div class="tags">'+(r.items.length? r.items.map(tagHTML).join('') : '<span class="na">-</span>')+'</div></td>'
+    +'<td class="b"><span class="booth'+(r.booth?'':' none')+'">'+(r.booth? hl(r.booth) : '미정')+'</span></td>'
+    +'<td class="h hp">'+hp+'</td>'
+    +'<td class="m memo">'+memoCell(r)+'</td></tr>';
+}
+const THEAD = '<colgroup><col class="c-star"><col class="c-name"><col class="c-item"><col class="c-booth"><col class="c-hp"><col class="c-memo"></colgroup>'
+  +'<thead><tr><th></th><th>간판명</th><th>품목</th><th>부스번호</th><th>홈페이지</th><th>메모</th></tr></thead>';
+const tableHTML = list => '<table>'+THEAD+'<tbody>'+list.map(rowHTML).join('')+'</tbody></table>';
+
+function render(){
+  const toks = tokens().filter(t=>!/^[ㄱ-ㅎ]+$/.test(t));
+  hlRe = toks.length ? new RegExp('('+toks.map(reEsc).join('|')+')','gi') : null;
+  const list = filtered();
+  const box = $('list');
+  if(!list.length){
+    box.innerHTML = '<div class="empty">조건에 맞는 업체가 없습니다.<br>검색어나 필터를 바꿔 보세요.</div>';
+  } else if(st.view==='group'){
+    const order = CATS.concat([NONE]);
+    box.innerHTML = order.map(c=>{
+      if(st.cats.size && !st.cats.has(c)) return '';
+      const g = list.filter(r=>r.cats.includes(c));
+      if(!g.length) return '';
+      return '<details class="grp" open style="--cc:'+(CAT_COLOR[c]||'#98a2b3')+'"><summary><i></i>'+esc(c)+'<b>'+g.length+'개</b></summary>'+tableHTML(g)+'</details>';
+    }).join('');
+  } else {
+    box.innerHTML = tableHTML(list);
+  }
+  const memoN = Object.values(store.memos).filter(m=>m&&m.t).length;
+  const favN = Object.keys(store.favs).filter(k=>store.favs[k]).length;
+  $('statL').innerHTML = '<b>'+list.length+'</b>개 업체 표시 <span>(전체 '+recs.length+'개)</span>';
+  $('statR').textContent = '관심 '+favN+'곳 · 메모 '+memoN+'건';
+  updFilterCount();
+}
+
+/* ---------- 필터 UI ---------- */
+function buildChips(){
+  const cnt = {}; recs.forEach(r=>r.cats.forEach(c=>cnt[c]=(cnt[c]||0)+1));
+  const names = CATS.concat(cnt[NONE]?[NONE]:[]);
+  $('chips').innerHTML = names.map(c=>'<button class="chip" data-c="'+esc(c)+'" style="--cc:'+CAT_COLOR[c]+'" aria-pressed="false"><i></i>'+esc(c)+' <em>'+(cnt[c]||0)+'</em></button>').join('');
+}
+function buildZones(){
+  const cnt={}; recs.forEach(r=>cnt[r.zone]=(cnt[r.zone]||0)+1);
+  const zs = Object.keys(cnt).sort((a,b)=> a==='미정'?1 : b==='미정'?-1 : a.localeCompare(b));
+  $('zone').innerHTML = '<option value="">전체</option>'+zs.map(z=>'<option value="'+esc(z)+'">'+esc(z==='미정'?'미정':z+'구역')+' ('+cnt[z]+')</option>').join('');
+}
+
+/* ---------- 이벤트 ---------- */
+const qEl=$('q');
+let qt; qEl.addEventListener('input',()=>{ st.q=qEl.value; $('searchBox').classList.toggle('has',!!qEl.value); clearTimeout(qt); qt=setTimeout(render,80); });
+$('qClear').onclick=()=>{ qEl.value=''; st.q=''; $('searchBox').classList.remove('has'); render(); qEl.focus(); };
+$('chips').addEventListener('click',e=>{
+  const b=e.target.closest('.chip'); if(!b) return;
+  const c=b.dataset.c; st.cats.has(c)?st.cats.delete(c):st.cats.add(c);
+  b.classList.toggle('on',st.cats.has(c)); b.setAttribute('aria-pressed',st.cats.has(c)); render();
+});
+$('zone').onchange=e=>{ st.zone=e.target.value; render(); };
+$('sort').onchange=e=>{ st.sort=e.target.value; store.ui.sort=st.sort; persist(); render(); };
+$('viewSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  st.view=b.dataset.v; store.ui.view=st.view; persist(); syncSeg(); render();
+});
+function syncSeg(){ document.querySelectorAll('#viewSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===st.view)); }
+$('favOnly').onchange=e=>{ st.fav=e.target.checked; render(); };
+$('memoOnly').onchange=e=>{ st.memo=e.target.checked; render(); };
+$('reset').onclick=()=>{
+  st.q='';st.cats.clear();st.zone='';st.fav=false;st.memo=false; qEl.value=''; $('zone').value=''; $('favOnly').checked=false; $('memoOnly').checked=false;
+  $('searchBox').classList.remove('has'); document.querySelectorAll('.chip').forEach(c=>{c.classList.remove('on');c.setAttribute('aria-pressed','false')}); render();
+};
+document.addEventListener('keydown',e=>{
+  if(e.key==='/' && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)){ e.preventDefault(); qEl.focus(); qEl.select(); }
+  if(e.key==='Escape') closeDrawer();
+});
+
+/* 목록 내 클릭: 관심 / 메모 */
+$('list').addEventListener('click',e=>{
+  const tr=e.target.closest('tr[data-no]'); if(!tr) return;
+  const r=recs[+tr.dataset.no-1];
+  if(e.target.closest('.star')){
+    store.favs[r.key]=!store.favs[r.key]; if(!store.favs[r.key]) delete store.favs[r.key]; persist();
+    if(st.fav){ render(); } else {
+      document.querySelectorAll('tr[data-no="'+r.no+'"] .star').forEach(s=>{ const on=!!store.favs[r.key]; s.classList.toggle('on',on); s.textContent=on?'★':'☆'; s.setAttribute('aria-pressed',on); });
+      const n=Object.keys(store.favs).length; $('statR').textContent='관심 '+n+'곳 · 메모 '+Object.values(store.memos).filter(m=>m&&m.t).length+'건';
+    }
+    return;
+  }
+  if(e.target.closest('a')) return;
+  if(e.target.closest('.memo')) openDrawer(r);
+});
+
+/* ---------- 메모 서랍 ---------- */
+let cur=null, st_t;
+function openDrawer(r){
+  cur=r;
+  $('dName').textContent=r.name;
+  $('dMeta').innerHTML='<dt>부스</dt><dd>'+esc(r.booth||'미정')+'</dd><dt>품목</dt><dd>'+esc(r.items.join(', ')||'-')+'</dd><dt>홈페이지</dt><dd>'+(r.link?'<a href="'+esc(r.link.href)+'" target="_blank" rel="noopener noreferrer">'+esc(r.link.label)+'</a>':esc(r.hp||'-'))+'</dd>';
+  const m=store.memos[r.key]; $('dText').value=m?m.t:''; $('dSaved').textContent=m&&m.u?'저장됨 · '+fmt(m.u):'자동 저장됩니다';
+  $('ov').classList.add('show'); $('drawer').classList.add('show'); $('drawer').setAttribute('aria-hidden','false');
+  document.body.classList.add('lock');
+  if(!window.matchMedia('(pointer:coarse)').matches) setTimeout(()=>$('dText').focus(),120);
+}
+function closeDrawer(){
+  if(!cur) return; flush(); cur=null;
+  $('ov').classList.remove('show'); $('drawer').classList.remove('show'); $('drawer').setAttribute('aria-hidden','true');
+  document.body.classList.remove('lock'); $('drawer').style.bottom=''; $('drawer').style.maxHeight='';
+  if(st.memo||tokens().length) render(); else refreshStats();
+}
+function refreshStats(){ $('statR').textContent='관심 '+Object.keys(store.favs).length+'곳 · 메모 '+Object.values(store.memos).filter(m=>m&&m.t).length+'건'; }
+const pad=n=>String(n).padStart(2,'0');
+function fmt(t){ const d=new Date(t); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes()); }
+function flush(){
+  if(!cur) return; clearTimeout(st_t);
+  const t=$('dText').value.trim(); const prev=(store.memos[cur.key]||{}).t||'';
+  if(t===prev) return;
+  if(t) store.memos[cur.key]={t:$('dText').value,u:Date.now()}; else delete store.memos[cur.key];
+  persist();
+  $('dSaved').textContent=t?'저장됨 · '+fmt(Date.now()):'메모 없음';
+  document.querySelectorAll('tr[data-no="'+cur.no+'"] .memo').forEach(c=>{ c.innerHTML=memoCell(cur); });
+  refreshStats();
+}
+$('dText').addEventListener('input',()=>{ $('dSaved').textContent='저장 중…'; clearTimeout(st_t); st_t=setTimeout(flush,350); });
+$('dClose').onclick=closeDrawer; $('ov').onclick=closeDrawer;
+$('dDel').onclick=()=>{ if(!cur) return; if(!$('dText').value.trim() || confirm('이 업체의 메모를 삭제할까요?')){ $('dText').value=''; flush(); } };
+$('dQuick').innerHTML=QUICK.map(t=>'<button type="button">'+t+'</button>').join('');
+$('dQuick').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const ta=$('dText'); ta.value += (ta.value && !ta.value.endsWith('\n')?'\n':'')+'• '+b.textContent+' '; ta.focus();
+  ta.dispatchEvent(new Event('input'));
+});
+
+/* ---------- 내보내기 / 백업 ---------- */
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove('show'),2200); }
+function download(name,text,type){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
+const today=()=>{ const d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); };
+$('bCsv').onclick=()=>{
+  const list=filtered(); const q=s=>'"'+String(s==null?'':s).replace(/"/g,'""')+'"';
+  const rows=[['번호','간판명','품목','부스번호','홈페이지','관심','메모']].concat(list.map(r=>[r.no,r.name,r.items.join(', '),r.booth,r.hp,store.favs[r.key]?'★':'',(store.memos[r.key]||{}).t||'']));
+  download('푸드위크_참가업체_'+today()+'.csv','﻿'+rows.map(r=>r.map(q).join(',')).join('\r\n'),'text/csv;charset=utf-8');
+  toast(list.length+'개 업체를 CSV로 저장했습니다');
+};
+$('bBackup').onclick=()=>{
+  download('푸드위크_메모백업_'+today()+'.json',JSON.stringify({version:1,exportedAt:new Date().toISOString(),memos:store.memos,favs:store.favs},null,2),'application/json');
+  toast('메모 '+Object.keys(store.memos).length+'건을 백업했습니다');
+};
+$('bRestore').onclick=()=>$('fRestore').click();
+$('fRestore').onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const o=JSON.parse(rd.result); if(!o||typeof o.memos!=='object') throw 0;
+      let n=0; Object.keys(o.memos).forEach(k=>{ const m=o.memos[k]; const c=store.memos[k]; if(m&&m.t&&(!c||(m.u||0)>(c.u||0))){ store.memos[k]=m; n++; } });
+      Object.keys(o.favs||{}).forEach(k=>{ if(o.favs[k]) store.favs[k]=true; });
+      persist(); render(); toast('메모 '+n+'건을 복원했습니다');
+    }catch(err){ toast('올바른 백업 파일이 아닙니다'); }
+    e.target.value='';
+  };
+  rd.readAsText(f);
+};
+
+/* ---------- 모바일 ---------- */
+const isMobile = () => window.matchMedia('(max-width:820px)').matches;
+function updFilterCount(){
+  const n=(st.zone?1:0)+(st.fav?1:0)+(st.memo?1:0);
+  $('fCount').textContent=n?' '+n:''; $('fToggle').classList.toggle('active',n>0);
+}
+$('fToggle').onclick=()=>{ const o=$('filters').classList.toggle('open'); $('fToggle').setAttribute('aria-expanded',o); };
+
+/* 키보드가 올라와도 메모창이 가려지지 않게 위치 보정 */
+if(window.visualViewport){
+  const vv=window.visualViewport;
+  const fit=()=>{
+    const d=$('drawer'); if(!d.classList.contains('show')||!isMobile()) return;
+    d.style.bottom=Math.max(0,window.innerHeight-vv.height-vv.offsetTop)+'px';
+    d.style.maxHeight=(vv.height-12)+'px';
+  };
+  vv.addEventListener('resize',fit); vv.addEventListener('scroll',fit);
+}
+
+/* 메모창을 아래로 밀어 닫기 */
+(()=>{
+  const d=$('drawer'); let y0=null;
+  d.addEventListener('touchstart',e=>{ if(isMobile() && e.target.closest('#grab,#drawer>header')){ y0=e.touches[0].clientY; d.style.transition='none'; } },{passive:true});
+  d.addEventListener('touchmove',e=>{ if(y0==null) return; const dy=e.touches[0].clientY-y0; if(dy>0) d.style.transform='translateY('+dy+'px)'; },{passive:true});
+  d.addEventListener('touchend',e=>{
+    if(y0==null) return; const dy=e.changedTouches[0].clientY-y0; y0=null;
+    d.style.transition=''; d.style.transform=''; if(dy>90) closeDrawer();
+  });
+})();
+
+/* 맨 위로 */
+const toTop=$('toTop');
+window.addEventListener('scroll',()=>toTop.classList.toggle('show',window.scrollY>600),{passive:true});
+toTop.onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
+
+/* ---------- 시작 ---------- */
+$('totalN').textContent=recs.length;
+$('sort').value=st.sort; syncSeg(); buildChips(); buildZones(); render();
+</script>
+</body>
+</html>
