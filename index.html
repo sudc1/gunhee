@@ -139,6 +139,8 @@ footer{padding:18px 0 40px;color:var(--muted);font-size:12px;line-height:1.7}
 #lb .lp{left:10px;top:50%;margin-top:-22px} #lb .ln{right:10px;top:50%;margin-top:-22px}
 #lb .li{position:absolute;bottom:max(14px,env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#fff;font-size:13px}
 .rec-sec{display:flex;flex-direction:column;gap:8px}
+.rec-sec{order:0}
+#recFileBar.first .btn#recFileBtn{background:var(--accent);border-color:var(--accent);color:#fff}
 .rec-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 #recBtn{display:inline-flex;align-items:center;gap:6px;min-height:40px}
 #recBtn i{width:10px;height:10px;border-radius:50%;background:var(--danger);display:inline-block}
@@ -345,12 +347,13 @@ body.lock{overflow:hidden}
     </div>
     <div class="rec-sec">
       <div class="ph-head"><span>음성 메모</span><small id="recInfo"></small></div>
-      <div class="rec-bar">
+      <div class="rec-bar" id="recLiveBar">
         <button type="button" class="btn" id="recBtn"><i></i><span>녹음 시작</span></button>
-        <span id="recTime"></span>
+        <span id="recTime"></span><button type="button" class="btn" id="recRe" style="display:none">받아쓰기 다시 시작</button>
         <label><input type="checkbox" id="recStt" checked>글로 받아쓰기</label>
         <label><input type="checkbox" id="recAud" checked>녹음 파일 저장</label>
       </div>
+      <div class="rec-bar" id="recFileBar"><button type="button" class="btn" id="recFileBtn">녹음 앱으로 녹음</button><button type="button" class="btn" id="recPickBtn">음성 파일 선택</button><input type="file" id="recFile" accept="audio/*" capture="microphone" hidden><input type="file" id="recPick" accept="audio/*,.m4a,.mp3,.wav,.aac,.amr,.3gp,.ogg" hidden></div>
       <div class="rec-live" id="recLive"></div>
       <div class="rec-hint" id="recHint"></div>
       <div id="recList" style="display:flex;flex-direction:column;gap:6px"></div>
@@ -705,14 +708,29 @@ $('lb').addEventListener('click',e=>{ if(e.target===$('lb')) closeLb(); });
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const canRec = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
 let recS=null;
+const UA=navigator.userAgent||'';
+const INAPP=/KAKAOTALK|NAVER\(inapp|NAVER\/|Line\/|FBAN|FBAV|Instagram|DaumApps|SamsungBrowser\/[\d.]+.*Mobile.*; wv\)|; wv\)/i.test(UA);
+const IOS=/iPad|iPhone|iPod/.test(UA)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const MOBILE=/Android|iPhone|iPad|iPod|Mobile/i.test(UA)||(navigator.maxTouchPoints>1&&innerWidth<900);
+const MIC_OK = window.isSecureContext!==false && canRec;   /* 보안 연결(https)이 아니면 브라우저가 마이크 API를 아예 막는다 */
 function recReset(){
-  $('recStt').disabled=!SR; if(!SR) $('recStt').checked=false;
-  $('recAud').disabled=!canRec; if(!canRec) $('recAud').checked=false;
-  $('recBtn').disabled=!SR&&!canRec;
-  $('recHint').textContent = (!SR&&!canRec) ? '이 브라우저는 녹음을 지원하지 않습니다. Chrome·Edge·Safari 최신 버전에서 열어 주십시오.'
-    : (!SR ? '이 브라우저는 글 받아쓰기를 지원하지 않아 녹음 파일만 저장됩니다.' : '받아쓰기는 브라우저의 음성 인식 서비스를 이용하며, 음성이 해당 서비스(Chrome은 Google)로 전송될 수 있습니다. 인터넷 연결과 마이크 허용이 필요합니다.');
+  const live = MIC_OK || (SR && window.isSecureContext!==false);
+  $('recStt').disabled=!SR||!live; if(!SR||!live) $('recStt').checked=false;
+  $('recAud').disabled=!MIC_OK; if(!MIC_OK) $('recAud').checked=false;
+  const b=$('recBtn'); delete b.dataset.busy; b.classList.remove('on'); $('recRe').style.display='none';
+  b.disabled=!live; b.querySelector('span').textContent = live ? '녹음 시작' : '마이크 사용 불가';
+  $('recLiveBar').style.display = live ? '' : 'none';
+  let msg;
+  if(INAPP) msg='카카오톡·네이버 등 앱 안의 브라우저에서는 마이크가 막혀 있습니다. 화면 오른쪽 위(또는 아래) 메뉴에서 ‘다른 브라우저로 열기’를 눌러 Chrome 또는 Safari에서 여십시오.';
+  else if(window.isSecureContext===false || !navigator.mediaDevices) msg='이 화면은 보안 연결(https)이 아니어서(파일로 열었거나 http 주소) 휴대폰 브라우저가 마이크 사용을 막고 있습니다. 아래 ‘녹음 앱으로 녹음’을 이용하시거나, 키보드의 마이크(음성 입력) 버튼으로 메모 글상자에 바로 받아쓰십시오.';
+  else if(!SR&&!canRec) msg='이 브라우저는 녹음을 지원하지 않습니다. Chrome·Edge·Safari 최신 버전에서 열어 주십시오.';
+  else if(!SR) msg='이 브라우저는 글 받아쓰기를 지원하지 않아 녹음 파일만 저장됩니다.';
+  else msg='받아쓰기는 브라우저의 음성 인식 서비스를 이용하며, 음성이 해당 서비스(Chrome은 Google)로 전송될 수 있습니다. 인터넷 연결과 마이크 허용이 필요합니다.'+(IS_FILE?' ※ 파일로 직접 연 화면에서는 허용이 저장되지 않아 녹음할 때마다 허용 창이 뜹니다.':'');
+  if(!MIC_OK||INAPP) msg += IOS ? ' (아이폰: ‘음성 메모’ 앱으로 녹음한 뒤 ‘음성 파일 선택’으로 불러올 수 있습니다.)' : ' (안드로이드: ‘녹음 앱으로 녹음’을 누르면 기본 녹음기가 열립니다.)';
+  $('recHint').textContent=msg;
   $('recLive').textContent=''; $('recTime').textContent='';
-  const b=$('recBtn'); b.classList.remove('on'); b.querySelector('span').textContent='녹음 시작';
+  /* 마이크를 쓸 수 없는 환경에서는 녹음 앱 경로를 맨 앞에 */
+  $('recFileBar').classList.toggle('first',!live);
 }
 function mmss(sec){ sec=Math.round(sec); return pad(Math.floor(sec/60))+':'+pad(sec%60); }
 function renderAudio(){
@@ -731,30 +749,64 @@ function appendTranscript(t){
   ta.value += (!ta.value ? '' : (first ? (ta.value.endsWith('\n')?'':'\n') : ' ')) + t;
   ta.dispatchEvent(new Event('input'));
 }
+const IS_FILE = location.protocol==='file:';
+function setRecUI(on,label){ const b=$('recBtn'); b.classList.toggle('on',!!on); b.querySelector('span').textContent=label; }
+function startSR(S){
+  if(!SR||!S.wantText) return;
+  const sr=new SR(); sr.lang='ko-KR'; sr.continuous=true; sr.interimResults=true; S.sr=sr; S.srT=Date.now(); S.srOK=false;
+  sr.onresult=e=>{ S.srOK=true; let interim=''; for(let i=e.resultIndex;i<e.results.length;i++){ const r=e.results[i]; if(r.isFinal) appendTranscript(r[0].transcript); else interim+=r[0].transcript; } $('recLive').textContent=interim?'… '+interim:''; };
+  sr.onerror=e=>{
+    if(e.error==='not-allowed'||e.error==='service-not-allowed'){ S.sttOff=true; toast('음성 인식 권한이 없어 받아쓰기를 쓸 수 없습니다'); }
+    else if(e.error==='network'){ S.sttOff=true; toast('음성 인식에는 인터넷 연결이 필요합니다'); }
+    else if(e.error==='audio-capture'){ S.sttOff=true; toast('마이크를 찾을 수 없습니다'); }
+  };
+  sr.onend=()=>{
+    if(recS!==S||S.sr!==sr) return; $('recLive').textContent='';
+    /* 자동 재시작은 http(s)에서만, 그것도 짧게 끝나는 실패가 반복되면 중단 (허용 창이 계속 뜨는 현상 방지) */
+    const quick=Date.now()-S.srT<1500;
+    S.fails=(quick&&!S.srOK)?(S.fails||0)+1:0;
+    if(!IS_FILE && !S.sttOff && S.fails<3){ setTimeout(()=>{ if(recS===S) startSR(S); },300); }
+    else { S.sttOff=true; $('recRe').style.display='inline-flex'; if(S.aud) toast('받아쓰기가 중단되었습니다. 녹음은 계속됩니다'); else toast('받아쓰기가 중단되었습니다'); if(!S.aud) finishUI(S); }
+  };
+  try{ sr.start(); }catch(_){}
+}
+function finishUI(S){ /* 받아쓰기만 켠 상태에서 인식이 끝난 경우 */ if(recS===S) stopRec(); }
 async function startRec(){
-  if(!cur||recS) return;
-  const wantText=$('recStt').checked&&SR, wantAud=$('recAud').checked&&canRec;
+  if(!cur||recS||$('recBtn').dataset.busy) return;
+  const wantText=$('recStt').checked&&!!SR, wantAud=$('recAud').checked&&canRec;
   if(!wantText&&!wantAud){ toast('‘글로 받아쓰기’ 또는 ‘녹음 파일 저장’을 선택해 주십시오'); return; }
-  const S={key:cur.key,t0:Date.now(),chunks:[],running:true,wrote:false,sr:null,mr:null,stream:null,timer:null,aud:wantAud};
+  const S={key:cur.key,t0:Date.now(),chunks:[],running:true,wrote:false,sr:null,mr:null,stream:null,timer:null,aud:wantAud,wantText};
+  const b=$('recBtn'); b.dataset.busy='1'; b.disabled=true; setRecUI(false,'마이크 허용 대기 중…');
+  const reset=()=>{ delete b.dataset.busy; b.disabled=!SR&&!canRec; setRecUI(false,'녹음 시작'); };
   try{
-    if(wantAud){
-      S.stream=await navigator.mediaDevices.getUserMedia({audio:true});
-      const types=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg'];
-      const mt=types.find(t=>window.MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(t));
-      S.mr=mt?new MediaRecorder(S.stream,{mimeType:mt}):new MediaRecorder(S.stream);
-      S.mr.ondataavailable=e=>{ if(e.data&&e.data.size) S.chunks.push(e.data); };
-      S.mr.start(1000);
+    /* 마이크 허용은 한 번만 요청: 먼저 스트림을 얻고, 그 뒤에 받아쓰기를 시작 */
+    if(canRec){
+      const stream=await Promise.race([
+        navigator.mediaDevices.getUserMedia({audio:true}),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),20000))
+      ]);
+      S.stream=stream;
+      if(wantAud){
+        const types=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg'];
+        const mt=types.find(t=>window.MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(t));
+        S.mr=mt?new MediaRecorder(stream,{mimeType:mt}):new MediaRecorder(stream);
+        S.mr.ondataavailable=e=>{ if(e.data&&e.data.size) S.chunks.push(e.data); };
+        S.mr.start(1000);
+      } else { /* 받아쓰기만: 허용 확인용 스트림은 바로 닫는다 */ stream.getTracks().forEach(t=>t.stop()); S.stream=null; }
     }
-  }catch(e){ if(S.stream) S.stream.getTracks().forEach(t=>t.stop()); toast('마이크를 사용할 수 없습니다. 브라우저의 마이크 권한을 확인해 주십시오'); return; }
-  if(wantText){
-    const sr=new SR(); sr.lang='ko-KR'; sr.continuous=true; sr.interimResults=true; S.sr=sr;
-    sr.onresult=e=>{ let interim=''; for(let i=e.resultIndex;i<e.results.length;i++){ const r=e.results[i]; if(r.isFinal) appendTranscript(r[0].transcript); else interim+=r[0].transcript; } $('recLive').textContent=interim?'… '+interim:''; };
-    sr.onerror=e=>{ if(e.error==='not-allowed'||e.error==='service-not-allowed'){ S.sttOff=true; toast('음성 인식 권한이 없어 받아쓰기를 쓸 수 없습니다'); } else if(e.error==='network'){ S.sttOff=true; toast('음성 인식에는 인터넷 연결이 필요합니다'); } };
-    sr.onend=()=>{ if(S.running&&!S.sttOff){ try{ sr.start(); }catch(_){} } };
-    try{ sr.start(); }catch(_){}
+  }catch(e){
+    if(S.stream) S.stream.getTracks().forEach(t=>t.stop());
+    reset();
+    const nm=e&&e.name;
+    toast(e&&e.message==='timeout' ? '마이크 허용 창에 응답이 없어 취소했습니다. 다시 눌러 ‘허용’을 선택해 주십시오'
+      : nm==='NotAllowedError' ? '마이크가 차단되어 있습니다. 주소창 왼쪽 자물쇠(또는 마이크 아이콘)에서 허용으로 바꿔 주십시오'
+      : nm==='NotFoundError' ? '마이크를 찾을 수 없습니다' : '마이크를 사용할 수 없습니다');
+    return;
   }
-  recS=S; const b=$('recBtn'); b.classList.add('on'); b.querySelector('span').textContent='녹음 중지';
+  delete b.dataset.busy; b.disabled=false;
+  recS=S; $('recRe').style.display='none'; setRecUI(true,'녹음 중지');
   S.timer=setInterval(()=>{ $('recTime').textContent=mmss((Date.now()-S.t0)/1000); },500); $('recTime').textContent='00:00';
+  startSR(S);
 }
 function stopRec(){
   const S=recS; if(!S) return; recS=null; S.running=false; clearInterval(S.timer);
@@ -771,9 +823,23 @@ function stopRec(){
     }
   };
   if(S.mr&&S.mr.state!=='inactive'){ S.mr.onstop=fin; try{ S.mr.stop(); }catch(_){ fin(); } } else fin();
-  if(cur&&cur.key===key){ $('recLive').textContent=''; $('recTime').textContent=''; const b=$('recBtn'); b.classList.remove('on'); b.querySelector('span').textContent='녹음 시작'; if(S.wrote) toast('받아쓴 내용을 메모에 넣었습니다. 내용을 확인해 주십시오'); }
+  if(cur&&cur.key===key){ $('recLive').textContent=''; $('recTime').textContent=''; $('recRe').style.display='none'; setRecUI(false,'녹음 시작'); if(S.wrote) toast('받아쓴 내용을 메모에 넣었습니다. 내용을 확인해 주십시오'); }
 }
 $('recBtn').onclick=()=>{ recS?stopRec():startRec(); };
+$('recRe').onclick=()=>{ if(!recS) return; recS.sttOff=false; recS.fails=0; $('recRe').style.display='none'; startSR(recS); };
+$('recFileBtn').onclick=()=>$('recFile').click();
+const attachAudio=async e=>{
+  const f=e.target.files[0]; e.target.value=''; if(!f||!cur) return;
+  if(f.size>25*1024*1024){ toast('파일이 너무 큽니다(최대 25MB)'); return; }
+  if(!/^audio\//.test(f.type)&&!/\.(m4a|mp3|wav|aac|ogg|webm|amr|3gp)$/i.test(f.name)){ toast('음성 파일만 첨부할 수 있습니다'); return; }
+  const k=cur.key, id='a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  await dbPut({id,key:k,blob:f,u:Date.now(),kind:'a'});
+  const o=store.memos[k]||{t:'',u:Date.now(),p:[],a:[]}; o.a=(o.a||[]).concat(id); o.u=Date.now(); store.memos[k]=o; persist();
+  if(cur&&cur.key===k){ renderAudio(); refreshCell(); $('dSaved').textContent='저장됨 · '+fmt(Date.now()); }
+  toast('녹음 파일을 첨부했습니다');
+};
+$('recFile').onchange=attachAudio; $('recPick').onchange=attachAudio;
+$('recPickBtn').onclick=()=>$('recPick').click();
 $('recList').addEventListener('click',e=>{
   const it=e.target.closest('.au'); if(!it||!cur||!e.target.closest('.rm')) return;
   if(!confirm('이 녹음을 삭제할까요?')) return;
