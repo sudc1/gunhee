@@ -138,6 +138,21 @@ footer{padding:18px 0 40px;color:var(--muted);font-size:12px;line-height:1.7}
 #lb .lc{top:max(12px,env(safe-area-inset-top));right:12px}
 #lb .lp{left:10px;top:50%;margin-top:-22px} #lb .ln{right:10px;top:50%;margin-top:-22px}
 #lb .li{position:absolute;bottom:max(14px,env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#fff;font-size:13px}
+.rec-sec{display:flex;flex-direction:column;gap:8px}
+.rec-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#recBtn{display:inline-flex;align-items:center;gap:6px;min-height:40px}
+#recBtn i{width:10px;height:10px;border-radius:50%;background:var(--danger);display:inline-block}
+#recBtn.on{border-color:var(--danger);color:var(--danger);background:transparent}
+#recBtn.on i{animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.rec-bar label{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--muted)}
+#recTime{font-variant-numeric:tabular-nums;font-size:13px;color:var(--danger)}
+.rec-live{min-height:0;font-size:13px;color:var(--muted);font-style:italic}
+.rec-hint{font-size:11.5px;color:var(--muted);line-height:1.5}
+.au{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.au audio{flex:1;min-width:180px;height:36px}
+.au small{color:var(--muted);font-size:11.5px}
+.au .rm{border:0;background:transparent;color:var(--danger);cursor:pointer;font-size:12px;padding:4px 6px}
 .quick{display:flex;flex-wrap:wrap;gap:6px}
 .quick button{border:1px solid var(--line-strong);background:var(--card);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer}
 .quick button:hover{border-color:var(--accent);background:var(--accent-soft)}
@@ -243,6 +258,7 @@ body.lock{overflow:hidden}
   #drawer .body{padding:0 16px 8px}
   #dText{font-size:16px;flex:none;height:120px;min-height:100px}
   .ph-grid{grid-template-columns:repeat(3,1fr)}
+  .au audio{min-width:0;width:100%;flex:none}
   .ph-item .rm{width:32px;height:32px;font-size:18px}
   .quick button{padding:7px 12px;font-size:13px}
   #drawer .foot{padding:8px 16px 12px}
@@ -307,7 +323,7 @@ body.lock{overflow:hidden}
   <footer>
     · <b>/</b> 키로 검색창으로 이동, <b>Esc</b>로 메모창 닫기. 검색어를 띄어 쓰면 모든 단어가 포함된 업체만 찾습니다.<br>
     · 품목은 사이트 분류(국내종합식품·해외수입식품·기계/솔루션·기타)를 따르며, 두 개 이상 해당하는 업체는 카테고리별 보기에서 각 그룹에 모두 표시됩니다.<br>
-    · 메모·사진·관심 표시는 이 브라우저에 자동 저장됩니다(사진은 가로·세로 1280px로 줄여 저장, 업체당 최대 12장). 다른 브라우저나 PC에서 쓰려면 ‘메모 백업’ 후 ‘메모 복원’을 이용해 주세요.<br>
+    · 메모·사진·녹음·관심 표시는 이 브라우저에 자동 저장됩니다(사진은 가로·세로 1280px로 줄여 저장, 업체당 최대 12장). 다른 브라우저나 PC에서 쓰려면 ‘메모 백업’ 후 ‘메모 복원’을 이용해 주세요.<br>
     · 부스 배치도는 푸드위크 코리아 디지털 맵(GROWSPACE)을 그대로 불러와 보여 주며, 업체 위치 검색은 지도 안의 검색창을 이용합니다. 인터넷 연결이 필요합니다.
     · 국문 간판명이 없는 업체는 영문명으로 표시하고 ‘영문’ 표시를 붙였습니다. 홈페이지 값은 사이트 입력 그대로이므로 접속이 안 되는 주소가 있을 수 있습니다.
   </footer>
@@ -326,6 +342,18 @@ body.lock{overflow:hidden}
       <div class="ph-head"><span>사진</span><small id="phInfo"></small></div>
       <div class="ph-grid" id="phGrid"></div>
       <input type="file" id="phFile" accept="image/*" multiple hidden>
+    </div>
+    <div class="rec-sec">
+      <div class="ph-head"><span>음성 메모</span><small id="recInfo"></small></div>
+      <div class="rec-bar">
+        <button type="button" class="btn" id="recBtn"><i></i><span>녹음 시작</span></button>
+        <span id="recTime"></span>
+        <label><input type="checkbox" id="recStt" checked>글로 받아쓰기</label>
+        <label><input type="checkbox" id="recAud" checked>녹음 파일 저장</label>
+      </div>
+      <div class="rec-live" id="recLive"></div>
+      <div class="rec-hint" id="recHint"></div>
+      <div id="recList" style="display:flex;flex-direction:column;gap:6px"></div>
     </div>
   </div>
   <div class="foot"><span id="dSaved">자동 저장됩니다</span><button class="btn ghost danger" id="dDel">메모 삭제</button></div>
@@ -374,7 +402,8 @@ const SK='fw2026_search_v1';
 let store={memos:{},favs:{},ui:{}}, storageOK=true;
 try{ const raw=localStorage.getItem(SK); if(raw){ const o=JSON.parse(raw); store={memos:o.memos||{},favs:o.favs||{},ui:o.ui||{}}; } }catch(e){ storageOK=false; }
 const $ = id => document.getElementById(id);
-const hasMemo = m => !!(m && ((m.t&&m.t.trim()) || (m.p&&m.p.length)));
+const hasMemo = m => !!(m && ((m.t&&m.t.trim()) || (m.p&&m.p.length) || (m.a&&m.a.length)));
+const audioIds = k => ((store.memos[k]||{}).a)||[];
 const photoIds = k => ((store.memos[k]||{}).p)||[];
 const MAXP = 12;
 /* 사진은 용량이 커서 localStorage 대신 IndexedDB(브라우저 내부 저장소)에 보관 */
@@ -440,11 +469,12 @@ function filtered(){
 
 /* ---------- 렌더 ---------- */
 function tagHTML(c){ return '<span class="tag" style="--cc:'+(CAT_COLOR[c]||'#98a2b3')+'"><i></i>'+esc(c)+'</span>'; }
+const MIC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
 const CAM='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-2h6l2 2h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
 function memoCell(r){
-  const o=store.memos[r.key]||{}, m=o.t&&o.t.trim(), n=(o.p||[]).length;
-  if(!m&&!n) return '<button class="add" tabindex="-1">+ 메모</button>';
-  return (m?'<div class="txt">'+hl(o.t)+'</div>':'')+(n?'<div class="pc">'+CAM+'사진 '+n+'장</div>':'');
+  const o=store.memos[r.key]||{}, m=o.t&&o.t.trim(), n=(o.p||[]).length, na=(o.a||[]).length;
+  if(!m&&!n&&!na) return '<button class="add" tabindex="-1">+ 메모</button>';
+  return (m?'<div class="txt">'+hl(o.t)+'</div>':'')+(n?'<div class="pc">'+CAM+'사진 '+n+'장</div>':'')+(na?'<div class="pc">'+MIC+'녹음 '+na+'개</div>':'');
 }
 function rowHTML(r){
   const fav = store.favs[r.key];
@@ -552,13 +582,13 @@ function openDrawer(r){
   cur=r;
   $('dName').textContent=r.name;
   $('dMeta').innerHTML='<dt>부스</dt><dd>'+esc(r.booth||'미정')+(r.booth?'<button type="button" class="btn mini" data-map="1">배치도</button>':'')+'</dd><dt>품목</dt><dd>'+esc(r.items.join(', ')||'-')+'</dd><dt>홈페이지</dt><dd>'+(r.link?'<a href="'+esc(r.link.href)+'" target="_blank" rel="noopener noreferrer">'+esc(r.link.label)+'</a>':esc(r.hp||'-'))+'</dd>';
-  const m=store.memos[r.key]; $('dText').value=m&&m.t?m.t:''; renderPhotos(); $('dSaved').textContent=m&&m.u?'저장됨 · '+fmt(m.u):'자동 저장됩니다';
+  const m=store.memos[r.key]; $('dText').value=m&&m.t?m.t:''; renderPhotos(); renderAudio(); recReset(); $('dSaved').textContent=m&&m.u?'저장됨 · '+fmt(m.u):'자동 저장됩니다';
   $('ov').classList.add('show'); $('drawer').classList.add('show'); $('drawer').setAttribute('aria-hidden','false');
   document.body.classList.add('lock');
   if(!window.matchMedia('(pointer:coarse)').matches) setTimeout(()=>$('dText').focus(),120);
 }
 function closeDrawer(){
-  if(!cur) return; flush(); cur=null;
+  if(!cur) return; if(recS) stopRec(); flush(); cur=null;
   $('ov').classList.remove('show'); $('drawer').classList.remove('show'); $('drawer').setAttribute('aria-hidden','true');
   document.body.classList.remove('lock'); $('drawer').style.bottom=''; $('drawer').style.maxHeight='';
   if(st.memo||tokens().length) render(); else refreshStats();
@@ -570,10 +600,10 @@ function flush(){
   if(!cur) return; clearTimeout(st_t);
   const t=$('dText').value.trim(); const old=store.memos[cur.key]||{}; const prev=(old.t||'').trim();
   if(t===prev) return;
-  const p=old.p||[];
-  if(t||p.length) store.memos[cur.key]={t:$('dText').value,u:Date.now(),p}; else delete store.memos[cur.key];
+  const p=old.p||[], a=old.a||[];
+  if(t||p.length||a.length) store.memos[cur.key]={t:$('dText').value,u:Date.now(),p,a}; else delete store.memos[cur.key];
   persist();
-  $('dSaved').textContent=(t||p.length)?'저장됨 · '+fmt(Date.now()):'메모 없음';
+  $('dSaved').textContent=(t||p.length||a.length)?'저장됨 · '+fmt(Date.now()):'메모 없음';
   refreshCell();
 }
 function refreshCell(){
@@ -583,10 +613,10 @@ function refreshCell(){
 $('dText').addEventListener('input',()=>{ $('dSaved').textContent='저장 중…'; clearTimeout(st_t); st_t=setTimeout(flush,350); });
 $('dClose').onclick=closeDrawer; $('ov').onclick=closeDrawer;
 $('dDel').onclick=()=>{
-  if(!cur) return; const n=photoIds(cur.key).length;
-  if(!$('dText').value.trim() && !n) return;
-  if(confirm(n?'이 업체의 메모와 사진 '+n+'장을 삭제할까요?':'이 업체의 메모를 삭제할까요?')){
-    photoIds(cur.key).slice().forEach(dbDel); delete store.memos[cur.key]; $('dText').value=''; persist(); renderPhotos(); $('dSaved').textContent='메모 없음'; refreshCell();
+  if(!cur) return; if(recS) stopRec(); const n=photoIds(cur.key).length, na=audioIds(cur.key).length;
+  if(!$('dText').value.trim() && !n && !na) return;
+  if(confirm((n||na)?'이 업체의 메모와 첨부(사진 '+n+'장, 녹음 '+na+'개)를 삭제할까요?':'이 업체의 메모를 삭제할까요?')){
+    photoIds(cur.key).concat(audioIds(cur.key)).forEach(dbDel); delete store.memos[cur.key]; $('dText').value=''; persist(); renderPhotos(); renderAudio(); $('dSaved').textContent='메모 없음'; refreshCell();
   }
 };
 $('dQuick').innerHTML=QUICK.map(t=>'<button type="button">'+t+'</button>').join('');
@@ -671,22 +701,103 @@ $('lb').addEventListener('click',e=>{ if(e.target===$('lb')) closeLb(); });
   l.addEventListener('touchend',e=>{ if(x0==null||lbIds.length<2) return; const dx=e.changedTouches[0].clientX-x0; x0=null; if(Math.abs(dx)>50) lbStep(dx<0?1:-1); });
 })();
 
+/* ---------- 음성 메모 (녹음 + 글로 받아쓰기) ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const canRec = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+let recS=null;
+function recReset(){
+  $('recStt').disabled=!SR; if(!SR) $('recStt').checked=false;
+  $('recAud').disabled=!canRec; if(!canRec) $('recAud').checked=false;
+  $('recBtn').disabled=!SR&&!canRec;
+  $('recHint').textContent = (!SR&&!canRec) ? '이 브라우저는 녹음을 지원하지 않습니다. Chrome·Edge·Safari 최신 버전에서 열어 주십시오.'
+    : (!SR ? '이 브라우저는 글 받아쓰기를 지원하지 않아 녹음 파일만 저장됩니다.' : '받아쓰기는 브라우저의 음성 인식 서비스를 이용하며, 음성이 해당 서비스(Chrome은 Google)로 전송될 수 있습니다. 인터넷 연결과 마이크 허용이 필요합니다.');
+  $('recLive').textContent=''; $('recTime').textContent='';
+  const b=$('recBtn'); b.classList.remove('on'); b.querySelector('span').textContent='녹음 시작';
+}
+function mmss(sec){ sec=Math.round(sec); return pad(Math.floor(sec/60))+':'+pad(sec%60); }
+function renderAudio(){
+  if(!cur) return; const ids=audioIds(cur.key), box=$('recList'); box.innerHTML='';
+  ids.forEach(id=>{
+    const d=document.createElement('div'); d.className='au'; d.dataset.id=id;
+    d.innerHTML='<audio controls preload="none"></audio><small></small><button type="button" class="rm" aria-label="녹음 삭제">삭제</button>';
+    box.appendChild(d);
+    dbGet(id).then(r=>{ if(r&&r.blob){ d.querySelector('audio').src=urlOf(r); d.querySelector('small').textContent=(r.dur?mmss(r.dur)+' · ':'')+fmt(r.u); } else d.querySelector('small').textContent='녹음을 불러올 수 없습니다'; });
+  });
+  $('recInfo').textContent=ids.length?ids.length+'개':'';
+}
+function appendTranscript(t){
+  t=(t||'').trim(); if(!t||!cur) return; const ta=$('dText');
+  const first=!recS.wrote; recS.wrote=true;
+  ta.value += (!ta.value ? '' : (first ? (ta.value.endsWith('\n')?'':'\n') : ' ')) + t;
+  ta.dispatchEvent(new Event('input'));
+}
+async function startRec(){
+  if(!cur||recS) return;
+  const wantText=$('recStt').checked&&SR, wantAud=$('recAud').checked&&canRec;
+  if(!wantText&&!wantAud){ toast('‘글로 받아쓰기’ 또는 ‘녹음 파일 저장’을 선택해 주십시오'); return; }
+  const S={key:cur.key,t0:Date.now(),chunks:[],running:true,wrote:false,sr:null,mr:null,stream:null,timer:null,aud:wantAud};
+  try{
+    if(wantAud){
+      S.stream=await navigator.mediaDevices.getUserMedia({audio:true});
+      const types=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg'];
+      const mt=types.find(t=>window.MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(t));
+      S.mr=mt?new MediaRecorder(S.stream,{mimeType:mt}):new MediaRecorder(S.stream);
+      S.mr.ondataavailable=e=>{ if(e.data&&e.data.size) S.chunks.push(e.data); };
+      S.mr.start(1000);
+    }
+  }catch(e){ if(S.stream) S.stream.getTracks().forEach(t=>t.stop()); toast('마이크를 사용할 수 없습니다. 브라우저의 마이크 권한을 확인해 주십시오'); return; }
+  if(wantText){
+    const sr=new SR(); sr.lang='ko-KR'; sr.continuous=true; sr.interimResults=true; S.sr=sr;
+    sr.onresult=e=>{ let interim=''; for(let i=e.resultIndex;i<e.results.length;i++){ const r=e.results[i]; if(r.isFinal) appendTranscript(r[0].transcript); else interim+=r[0].transcript; } $('recLive').textContent=interim?'… '+interim:''; };
+    sr.onerror=e=>{ if(e.error==='not-allowed'||e.error==='service-not-allowed'){ S.sttOff=true; toast('음성 인식 권한이 없어 받아쓰기를 쓸 수 없습니다'); } else if(e.error==='network'){ S.sttOff=true; toast('음성 인식에는 인터넷 연결이 필요합니다'); } };
+    sr.onend=()=>{ if(S.running&&!S.sttOff){ try{ sr.start(); }catch(_){} } };
+    try{ sr.start(); }catch(_){}
+  }
+  recS=S; const b=$('recBtn'); b.classList.add('on'); b.querySelector('span').textContent='녹음 중지';
+  S.timer=setInterval(()=>{ $('recTime').textContent=mmss((Date.now()-S.t0)/1000); },500); $('recTime').textContent='00:00';
+}
+function stopRec(){
+  const S=recS; if(!S) return; recS=null; S.running=false; clearInterval(S.timer);
+  try{ if(S.sr) S.sr.stop(); }catch(_){}
+  const dur=(Date.now()-S.t0)/1000, key=S.key;
+  const fin=async()=>{
+    if(S.stream) S.stream.getTracks().forEach(t=>t.stop());
+    if(S.aud&&S.chunks.length&&dur>=1){
+      const blob=new Blob(S.chunks,{type:(S.mr&&S.mr.mimeType)||S.chunks[0].type||'audio/webm'}), id='a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+      await dbPut({id,key,blob,u:Date.now(),dur,kind:'a'});
+      const o=store.memos[key]||{t:'',u:Date.now(),p:[],a:[]}; o.a=(o.a||[]).concat(id); o.u=Date.now(); store.memos[key]=o; persist();
+      if(cur&&cur.key===key){ renderAudio(); refreshCell(); $('dSaved').textContent='저장됨 · '+fmt(Date.now()); }
+      if(!idbOK) toast('이 브라우저에서는 녹음이 새로고침 후 사라질 수 있습니다');
+    }
+  };
+  if(S.mr&&S.mr.state!=='inactive'){ S.mr.onstop=fin; try{ S.mr.stop(); }catch(_){ fin(); } } else fin();
+  if(cur&&cur.key===key){ $('recLive').textContent=''; $('recTime').textContent=''; const b=$('recBtn'); b.classList.remove('on'); b.querySelector('span').textContent='녹음 시작'; if(S.wrote) toast('받아쓴 내용을 메모에 넣었습니다. 내용을 확인해 주십시오'); }
+}
+$('recBtn').onclick=()=>{ recS?stopRec():startRec(); };
+$('recList').addEventListener('click',e=>{
+  const it=e.target.closest('.au'); if(!it||!cur||!e.target.closest('.rm')) return;
+  if(!confirm('이 녹음을 삭제할까요?')) return;
+  const k=cur.key, id=it.dataset.id, o=store.memos[k]; o.a=(o.a||[]).filter(x=>x!==id); o.u=Date.now(); if(!hasMemo(o)) delete store.memos[k];
+  dbDel(id); if(urls[id]){ URL.revokeObjectURL(urls[id]); delete urls[id]; } persist(); renderAudio(); refreshCell();
+});
+
 /* ---------- 내보내기 / 백업 ---------- */
 function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove('show'),2200); }
 function download(name,text,type){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
 const today=()=>{ const d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); };
 $('bCsv').onclick=()=>{
   const list=filtered(); const q=s=>'"'+String(s==null?'':s).replace(/"/g,'""')+'"';
-  const rows=[['번호','간판명','품목','부스번호','홈페이지','관심','메모','사진(장)']].concat(list.map(r=>[r.no,r.name,r.items.join(', '),r.booth,r.hp,store.favs[r.key]?'★':'',(store.memos[r.key]||{}).t||'',photoIds(r.key).length||'']));
+  const rows=[['번호','간판명','품목','부스번호','홈페이지','관심','메모','사진(장)','녹음(개)']].concat(list.map(r=>[r.no,r.name,r.items.join(', '),r.booth,r.hp,store.favs[r.key]?'★':'',(store.memos[r.key]||{}).t||'',photoIds(r.key).length||'',audioIds(r.key).length||'']));
   download('푸드위크_참가업체_'+today()+'.csv','﻿'+rows.map(r=>r.map(q).join(',')).join('\r\n'),'text/csv;charset=utf-8');
   toast(list.length+'개 업체를 CSV로 저장했습니다');
 };
 const blobToURL=b=>new Promise(r=>{ const f=new FileReader(); f.onload=()=>r(f.result); f.onerror=()=>r(null); f.readAsDataURL(b); });
 $('bBackup').onclick=async()=>{
   const photos={}; let pn=0;
-  for(const k of Object.keys(store.memos)) for(const id of photoIds(k)){ const rec=await dbGet(id); if(rec&&rec.blob){ const d=await blobToURL(rec.blob); if(d){ photos[id]={key:k,u:rec.u,d}; pn++; } } }
+  let an=0;
+  for(const k of Object.keys(store.memos)) for(const id of photoIds(k).concat(audioIds(k))){ const rec=await dbGet(id); if(rec&&rec.blob){ const d=await blobToURL(rec.blob); if(d){ const au=audioIds(k).includes(id); photos[id]={key:k,u:rec.u,d,k:au?'a':'p',dur:rec.dur}; if(au) an++; else pn++; } } }
   download('푸드위크_메모백업_'+today()+'.json',JSON.stringify({version:2,exportedAt:new Date().toISOString(),memos:store.memos,favs:store.favs,photos}),'application/json');
-  toast('메모 '+Object.values(store.memos).filter(hasMemo).length+'건'+(pn?' · 사진 '+pn+'장':'')+'을 백업했습니다');
+  toast('메모 '+Object.values(store.memos).filter(hasMemo).length+'건'+(pn?' · 사진 '+pn+'장':'')+(an?' · 녹음 '+an+'개':'')+'을 백업했습니다');
 };
 $('bRestore').onclick=()=>$('fRestore').click();
 $('fRestore').onchange=e=>{
@@ -698,15 +809,16 @@ $('fRestore').onchange=e=>{
       const ph=o.photos||{}; let n=0, pn=0;
       for(const k of Object.keys(o.memos)){
         const m=o.memos[k]; if(!hasMemo(m)) continue; const c=store.memos[k];
-        const have=new Set((c&&c.p)||[]); const add=[];
-        for(const id of (m.p||[])){
+        const have=new Set(((c&&c.p)||[]).concat((c&&c.a)||[])); const add=[], addA=[];
+        for(const id of (m.p||[]).concat(m.a||[])){
           if(have.has(id)||!ph[id]||!ph[id].d) continue;
-          try{ const blob=await (await fetch(ph[id].d)).blob(); await dbPut({id,key:k,blob,u:ph[id].u||Date.now()}); add.push(id); pn++; }catch(_){}
+          const isA=(m.a||[]).includes(id);
+          try{ const blob=await (await fetch(ph[id].d)).blob(); await dbPut({id,key:k,blob,u:ph[id].u||Date.now(),dur:ph[id].dur,kind:isA?'a':undefined}); (isA?addA:add).push(id); pn++; }catch(_){}
         }
         const newer=!c||(m.u||0)>(c.u||0);
         const t=newer?(m.t||''):(c.t||'');
-        const merged={t,u:Math.max(m.u||0,(c&&c.u)||0)||Date.now(),p:[...((c&&c.p)||[]),...add]};
-        if(newer||add.length){ store.memos[k]=merged; n++; }
+        const merged={t,u:Math.max(m.u||0,(c&&c.u)||0)||Date.now(),p:[...((c&&c.p)||[]),...add],a:[...((c&&c.a)||[]),...addA]};
+        if(newer||add.length||addA.length){ store.memos[k]=merged; n++; }
       }
       Object.keys(o.favs||{}).forEach(k=>{ if(o.favs[k]) store.favs[k]=true; });
       persist(); render(); toast('메모 '+n+'건'+(pn?' · 사진 '+pn+'장':'')+'을 복원했습니다');
